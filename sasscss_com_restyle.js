@@ -1,11 +1,12 @@
 // ==UserScript==
 // @name         sasscss.com restyle
 // @namespace    http://www.sasscss.com
-// @version      0.1
+// @version      0.2
 // @description  sasscss.com restyle
 // @author       TheTime50
 // @match        https://www.sasscss.com/*
 // @grant        none
+// @updateURL    https://thetime50.github.io/tampermonkeyscript/sasscss_com_restyle.js
 // ==/UserScript==
 
 (function () {
