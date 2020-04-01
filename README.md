@@ -2,7 +2,8 @@
 tampermonkey script
 
 ## CDN
-[**about jsdelivr**](https://www.jsdelivr.com/features#gh)
+[![](https://data.jsdelivr.com/v1/package/gh/thetime50/tampermonkeyscript/badge)](https://www.jsdelivr.com/package/gh/thetime50/tampermonkeyscript)  
+[**about jsdelivr**](https://www.jsdelivr.com/features#gh)  
 
 加载任何GitHub版本，提交或分支：  
 https://cdn.jsdelivr.net/gh/thetime50/tampermonkeyscript@version/[fiel]
