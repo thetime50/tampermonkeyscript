@@ -1,3 +1,33 @@
+/*
+let classObj={
+    selector: ".ident-class",
+    contents:[
+        {backgroundColot:"#fcc"},
+        {color:"#822"},
+        {
+            selector:".aaa",
+            contents:[
+                {color:"#666"},
+                {fontSize:"12px"},
+                {
+                    selector:"&.bbb",
+                    contents:[
+                        {color:"#666"},
+                        {fontSize:"12px"},
+                    ],
+                }
+            ],
+        },
+        {
+            selector:".ccc",
+            contents:[
+                {color:"#666"},
+                {fontSize:"12px"},
+            ],
+        }
+    ]
+}
+*/
 
 const classObjBuild=function(obj){
     if(Array.isArray(obj)){
