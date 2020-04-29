@@ -88,15 +88,13 @@ const classObjBuild=function(obj, conjunction='' ){
             if(objStyles.length||strStyles.length||strSelStyles.length){
                 selector = p.map(v=>v.selector_).join(' ').replace(/\s+\&/g,'') //构造选择器
             }
-
             // console.log(objStyles, strStyles, strSelStyles)
-
 
             if(objStyles.length){//对象样式节点
                 let stylesStrs= []
                 objStyles.forEach((v,i,a)=>{ //遍历样式节点
                     Object.keys(v).forEach((av,ai,aa)=>{//遍历Attribute
-                        let field = av.replace(/\w([A-Z])/g,"-$1").toLocaleLowerCase()
+                        let field = av.replace(/(?<=\w)([A-Z])/g,"-$1").toLocaleLowerCase()
                         re && ( field = field.replace(re,'-'))
                         let value = v[av]
                         stylesStrs.push(`${field}:${value};`)
@@ -131,6 +129,5 @@ const classObjBuild=function(obj, conjunction='' ){
         }
     }
     common.traverseTree(obj,"contents_",null,itemProcess)
-
     return ret
 }
