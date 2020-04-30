@@ -95,6 +95,13 @@ const classObjBuild=function(obj, conjunction='' ){
                 objStyles.forEach((v,i,a)=>{ //遍历样式节点
                     Object.keys(v).forEach((av,ai,aa)=>{//遍历Attribute
                         let field = av.replace(/(?<=\w)([A-Z])/g,"-$1").toLocaleLowerCase()
+//                         let field = av.replace(/([A-Z])/g,(match, p1, offset, string)=>{
+//                             if(offset>0 && /[a-zA-Z0-9]/.test(string[offset-1])){ // (?<=\w)
+//                                 return '-'+p1.toLocaleLowerCase()//"-$1"
+//                             }
+//                             return p1.toLocaleLowerCase()
+//                         })
+                        
                         re && ( field = field.replace(re,'-'))
                         let value = v[av]
                         stylesStrs.push(`${field}:${value};`)
