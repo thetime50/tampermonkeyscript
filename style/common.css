@@ -284,3 +284,12 @@ img{
     white-space: normal;
     word-break: break-all;
 }
+
+
+.el-input.num-patch input[type="number"]{
+      -moz-appearance: textfield;
+}
+.el-input.num-patch input::-webkit-outer-spin-button,
+.el-input.num-patch input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+}
