@@ -5,60 +5,120 @@ img{
     max-width: 100%;
     max-height: 100%;
 }
+/*/////////////////////////////////////////////*/
+/*/功能类*/
+.dbg-error{
+  color: #ff7966;
+  background-color: #868686;
+}
 
+/* 让el-input 在disabled状态下取消disabled的样式*/
+.input-show.el-input.is-disabled .el-input__inner{
+  background-color:#fff;
+  color: #000;
+  cursor: auto;
+}
+
+/* 让el-form-item为行内布局而不是一行一个*/
+.el-form-item.inline-form .el-form-item__content{
+    display: inline-block;
+}
+
+/*文本对齐*/
+.text-left{
+  text-align: left;
+}
+.text-center{
+  text-align: center;
+}
+.text-right{
+  text-align: right;
+}
+
+.vertical-auto{
+  vertical-align: auto;
+}
+.vertical-baseline{
+  vertical-align: baseline;
+}
+.vertical-bottom{
+  vertical-align: bottom;
+}
+.vertical-middle{
+  vertical-align: middle;
+}
+.vertical-sub{
+  vertical-align: sub;
+}
+.vertical-super{
+  vertical-align: super;
+}
+.vertical-text-bottom{
+  vertical-align: text-bottom;
+}
+.vertical-text-top{
+  vertical-align: text-top;
+}
+.vertical-top{
+  vertical-align: top;
+}
 .inline-block{
     display: inline-block;
-  }
-  
-  .one-line{
+}
+
+.one-line{
     overflow: hidden;
     text-overflow:ellipsis;
     white-space: nowrap;
-  }
-  
-  .one-line-wrap>*{
-        display: inline-block;
-        width: auto;
-  }
-  
-  .no-click{
+}
+
+.one-line-wrap>*{
+    display: inline-block;
+    width: auto;
+}
+
+.one-line-wrap.lpatch{
+    word-spacing:-1em;
+}
+
+.no-click{
     pointer-events:none;
-  }
-  
-  .cpoint{
+}
+
+.cpoint{
     cursor: pointer;
-  }
-  .tdunderline {
+}
+.tdunderline {
     text-decoration:underline ;
-  }
-  
-  .vertical-text{
+}
+
+.vertical-text{
     writing-mode:vertical-lr;
-  }
-  
-  .visibil-hid{
+}
+
+.visibil-hid{
     visibility: hidden;
-  }
-  
-  /*flex*/ 
-  .flex-layout,
-  .flex-layout.el-container{/*刷优先级*/
+}
+
+/*flex*/ 
+.flex-layout,
+.flex-layout.el-container{/*刷优先级*/
     display: flex;
     flex-direction: column;/*方向*/
     flex-wrap: nowrap;
     justify-content: center;/*轴线分布*/
     align-items: stretch;/*正交分布*/
     align-content: stretch;/*整体对齐*/
-  }
-  
-  .flex-layout>*,
-  .flex-layout.el-container>*{
-        min-width: 0;
-        min-height: 0;
-  }
+}
+
+.flex-layout>*,
+.flex-layout.el-container>*{
+    min-width: 0;
+    min-height: 0;
+}
 
 .flex-layout.fcol{/*default*/
-  flex-direction: column;
+    flex-direction: column;
 }
 .flex-layout.frow{
     flex-direction: row;/*方向*/
@@ -70,26 +130,85 @@ img{
   flex-direction: row-reverse;
 }
   
-  .flex-auto{
+/*flex子块按内容比例自动撑开*/
+.flex-auto{
     flex: auto;
     flex: 1 1 auto;
-  }
-  .flex-none{
+}
+.flex-none{
     flex: none;
     flex: 0 0 auto;
-  }
-  .flex-mean{
+}
+/*flex子块尺寸平均分布*/
+.flex-mean{
     flex: 1 1 100%;
-  }
+}
   
-  .full-block{
+/*轴线方向*/
+.justify-start{
+    justify-content:start;
+}
+.justify-end{
+    justify-content:end;
+}
+.justify-center{
+    justify-content:center;
+}
+.justify-stretch{
+    justify-content:stretch;
+}
+
+/* 正交方向 */
+.align-start{
+    align-items:start;
+}
+.align-end{
+    align-items:end;
+}
+.align-center{
+    align-items:center;
+}
+.align-stretch{
+    align-items:stretch;
+}
+
+/*轴线方向*/
+/*这个好像是grid布局有效的*/
+.justify-self-start{
+    justify-self:start;
+}
+.justify-self-end{
+    justify-self:end;
+}
+.justify-self-center{
+    justify-self:center;
+}
+.justify-self-stretch{
+    justify-self:stretch;
+}
+
+/* 正交方向 */
+.align-self-start{
+    align-self:start;
+}
+.align-self-end{
+    align-self:end;
+}
+.align-self-center{
+    align-self:center;
+}
+.align-self-stretch{
+    align-self:stretch;
+}
+  /*和父对象尺寸相同*/
+.full-block{
     box-sizing: border-box;
     width: 100%;
     height: 100%;
     /* overflow-y: auto;*/
-  }
-  
-  .abs-full-block{
+}
+/*绝对定位 和父对象尺寸相同 (强行解决父对象被撑开问题 一般不要使用)*/
+.abs-full-block{
     position: absolute;
     box-sizing: border-box;
     left: 0;
@@ -97,23 +216,80 @@ img{
     width: 100%;
     height: 100%;
     /* overflow-y: auto;*/
-  }
-  
-  .gray-filter{
+}
+/*元素灰色滤镜*/
+.gray-filter{
     filter: grayscale(100%);
-  }
-  
-  .scroll-x{
+}
+/*水平滚动 需要另外设置尺寸*/
+.scroll-x{
     overflow-x: auto;
-  }
-  .scroll-y{
+}
+/*垂直滚动 需要另外设置尺寸*/
+.scroll-y{
     overflow-y: auto;
-  }
-  
-  .prelative{
+}
+.overflow-hidden{
+    overflow: hidden;
+}
+/*相对定位 给absolute元素设置参考位置*/
+.prelative{
     position: relative;
-  }
-  .pabsolute{
+}
+/*绝对定位*/
+.pabsolute{
     position: absolute;
-  }
-  
+}
+/*标题样式 这个会抽组件 不要直接使用这个*/
+/* .title-box{
+  @include title-box();
+} */
+
+/* .block-radius{//功能页面区块样式 使用组件MpBlock.vue 不要直接使用这个类名
+  border-radius:$block-radius;
+}
+.block-border{
+  border: $border-color-base 1px solid;
+} */
+
+.style-wrap{
+  display: none;
+}
+
+.vertical-center{
+  position: relative;
+  top:50%;
+  transform: translateY(-50%);
+}
+
+.el-tree.tree-patch
+.el-tree-node__content{
+    display: flex;
+    flex-direction: row;/*方向*/
+    height: auto;
+    align-items:start;
+}
+.el-tree.tree-patch
+.el-tree-node__content
+>*{/*防止被子元素撑开 类似overflow效果*/
+    /* min-width: 0;*/
+    min-height: 0;
+}
+.el-tree.tree-patch
+.el-tree-node__content
+>.el-tree-node__label{
+    margin-left: 5px;
+    display: block;
+    overflow-y: auto;
+    white-space: normal;
+    word-break: break-all;
+}
+
+
+.el-input.num-patch input[type="number"]{
+      -moz-appearance: textfield;
+}
+.el-input.num-patch input::-webkit-outer-spin-button,
+.el-input.num-patch input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+}
