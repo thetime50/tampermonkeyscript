@@ -293,3 +293,13 @@ img{
 .el-input.num-patch input::-webkit-inner-spin-button {
       -webkit-appearance: none;
 }
+
+.el-input-number.num-patch {
+  .el-input-number__decrease,
+  .el-input-number__increase{
+    display: none;
+  }
+  input{
+    padding: 0 15px;
+  }
+}
