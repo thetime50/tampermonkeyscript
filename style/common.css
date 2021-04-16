@@ -1,3 +1,4 @@
+@charset "UTF-8";
 
 img{
     width: auto;
@@ -7,7 +8,6 @@ img{
 }
 /*/////////////////////////////////////////////*/
 /*/功能类*/
-@charset "UTF-8";
 .dbg-error {
   color: #ff7966;
   background-color: #868686;
