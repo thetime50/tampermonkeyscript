@@ -14,3 +14,7 @@ https://cdn.jsdelivr.net/gh/thetime50/tampermonkeyscript/[fiel]
 
 获取目录清单：  
 https://cdn.jsdelivr.net/gh/thetime50/tampermonkeyscript@latest/
+
+发布版本：  
+https://help.github.com/articles/about-releases  
+git tag -a v0.0.0x -m "my version 0.0.0x"
