@@ -1,0 +1,657 @@
+
+///////////////////////////////////////////////
+//功能类
+.dbg-error{
+  color: #ff7966;
+  background-color: #868686;
+}
+
+// 让el-input 在disabled状态下取消disabled的样式
+.input-show.el-input.is-disabled .el-input__inner{
+  background-color:#fff;
+  color: #000;
+  cursor: auto;
+}
+
+// 让el-form-item为行内布局而不是一行一个
+.el-form-item.inline-form{
+  .el-form-item__content{
+      display: inline-block;
+  }
+}
+
+//文本对齐
+.text-left{
+  text-align: left;
+}
+.text-center{
+  text-align: center;
+}
+.text-right{
+  text-align: right;
+}
+
+.vertical-auto{
+  vertical-align: auto;
+}
+.vertical-baseline{
+  vertical-align: baseline;
+}
+.vertical-bottom{
+  vertical-align: bottom;
+}
+.vertical-middle{
+  vertical-align: middle;
+}
+.vertical-sub{
+  vertical-align: sub;
+}
+.vertical-super{
+  vertical-align: super;
+}
+.vertical-text-bottom{
+  vertical-align: text-bottom;
+}
+.vertical-text-top{
+  vertical-align: text-top;
+}
+.vertical-top{
+  vertical-align: top;
+}
+
+.tdec-none{
+    text-decoration:none;//	默认。定义标准的文本。
+}
+.tdec-underline{
+    text-decoration:underline;//	定义文本下的一条线。
+}
+.tdec-overline{
+    text-decoration:overline;//	定义文本上的一条线。
+}
+.tdec-through{
+    text-decoration:line-through;//	定义穿过文本下的一条线。
+}
+.tdec-blink{
+    text-decoration:blink;//	定义闪烁的文本。
+}
+
+// 设置元素为inline-block
+.inline-block{
+  display: inline-block;
+}
+
+// 设置文本元素当行显示 超出显示...
+.one-line{
+  overflow: hidden;
+  text-overflow:ellipsis;
+  white-space: nowrap;
+}
+
+.one-line-wrap{
+  >*{
+      display: inline-block;
+      width: auto;
+  }
+}
+
+.one-line-wrap.lpatch{
+  word-spacing:-1em;
+  >*{
+    word-spacing: 0;
+  }
+}
+
+.line-clamp{
+  text-overflow: -o-ellipsis-lastline;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+//   line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.no-click{
+  pointer-events:none;
+}
+
+.cpointer,
+.cpointer.el-input.is-disabled .el-input__inner{
+  cursor: pointer;
+}
+.cnot-allowed{
+  cursor: not-allowed;
+}
+.cwait{
+  cursor: wait;
+}
+
+.tdunderline {
+  text-decoration:underline ;
+}
+
+.vertical-text{
+  writing-mode:vertical-lr;
+}
+
+.visibil-hid{
+  visibility: hidden;
+}
+
+/* flex布局 */
+
+// flex
+.flex-layout, //元素flex布局
+.flex-layout.el-container{//刷优先级
+  display: flex;
+  flex-direction: column;//方向
+  flex-wrap: nowrap;
+  justify-content: center;//轴线分布
+  align-items: stretch;//正交分布
+  align-content: stretch;//整体对齐
+
+  // >div{
+  >*{//防止被子元素撑开 类似overflow效果
+      min-width: 0;
+      min-height: 0;
+  }
+}
+.flex-layout,
+.el-container.flex-layout{
+  &.fcol{//default //flex-layout 竖向排列
+    flex-direction: column;
+  }
+  &.frow{//flex-layout 横向排列
+      flex-direction: row;//方向
+  }
+
+  &.fcol-rev{//flex-layout 竖向排列
+    flex-direction: column-reverse;
+  }
+  &.frow-rev{//flex-layout 横向排列
+    flex-direction: row-reverse;
+  }
+}
+
+.flex-wrap{
+  flex-wrap: wrap;
+}
+
+.flex-auto{//flex子块按内容比例自动撑开
+  flex: auto;
+  flex: 1 1 auto;
+}
+.flex-none{//flex子块使用原始尺寸
+  flex: none;
+  flex: 0 0 auto;
+}
+.flex-mean{//flex子块尺寸平均分布
+  flex: 1 1 100%;
+}
+
+/*轴线方向*/
+.justify-start{
+  justify-content:flex-start;
+}
+.justify-end{
+  justify-content:flex-end;
+}
+.justify-center{
+  justify-content:center;
+}
+.justify-between{
+  justify-content:space-between;
+}
+.justify-around{
+  justify-content:space-around;
+}
+
+/* 正交方向 */
+.align-start{
+  align-items:flex-start;
+}
+.align-end{
+  align-items:flex-end;
+}
+.align-center{
+  align-items:center;
+}
+.align-baseline {
+  align-items:baseline ;
+}
+.align-stretch {
+  align-items:stretch ;
+}
+
+// 整体
+.content-start{
+    align-content: flex-start;
+}
+.content-end{
+    align-content: flex-end;
+}
+.content-center{
+    align-content: center;
+}
+.content-between{
+    align-content: space-between;
+}
+.content-around{
+    align-content: space-around;
+}
+.content-stretch{
+    align-content: stretch;
+}
+
+
+/*轴线方向*/
+//这个好像是grid布局有效的
+.justify-self-start{
+  justify-self:start;
+}
+.justify-self-end{
+  justify-self:end;
+}
+.justify-self-center{
+  justify-self:center;
+}
+.justify-self-stretch{
+  justify-self:stretch;
+}
+
+/* 正交方向 */
+.align-self-start{
+  align-self:flex-start;
+}
+.align-self-end{
+  align-self:flex-end;
+}
+.align-self-center{
+  align-self:center;
+}
+.align-self-stretch{
+  align-self:stretch;
+}
+.flex-between {
+    display: flex;
+    justify-content: space-between;
+}
+.flex-center{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+.full-block{//和父对象尺寸相同
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  // overflow-y: auto;
+}
+
+.abs-full-block{//绝对定位 和父对象尺寸相同 (强行解决父对象被撑开问题 一般不要使用)
+  position: absolute;
+  box-sizing: border-box;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  // overflow-y: auto;
+}
+
+.gray-filter{//元素灰色滤镜
+  filter: grayscale(100%);
+}
+
+.scroll-x{//水平滚动 需要另外设置尺寸
+  overflow-x: auto;
+}
+.scroll-y{//垂直滚动 需要另外设置尺寸
+  overflow-y: auto;
+}
+.scroll-all{//垂直滚动 需要另外设置尺寸
+  overflow: auto;
+}
+.overflow-hidden{
+  overflow: hidden;
+}
+
+.fweight-normal{
+    font-weight:normal;
+}
+.fweight-bold{
+    font-weight:bold;
+}
+.fweight-bolder{
+    font-weight:bolder;
+}
+.fweight-lighter{
+    font-weight:lighter;
+}
+.fweight-100{
+    font-weight:100;
+}
+.fweight-200{
+    font-weight:200;
+}
+.fweight-300{
+    font-weight:300;
+}
+.fweight-400{
+    font-weight:400;
+}
+.fweight-500{
+    font-weight:500;
+}
+.fweight-600{
+    font-weight:600;
+}
+.fweight-700{
+    font-weight:700;
+}
+.fweight-800{
+    font-weight:800;
+}
+.fweight-900{
+    font-weight:900;
+}
+
+.prelative{//相对定位 给absolute元素设置参考位置
+  position: relative;
+}
+.pabsolute{//绝对定位
+  position: absolute;
+}
+.pfixed{//固定定位
+  position: fixed;
+}
+
+
+// .title-box{//标题样式 这个会抽组件 不要直接使用这个
+//   @include title-box();
+// }
+
+// .block-radius{//功能页面区块样式 使用组件MpBlock.vue 不要直接使用这个类名
+//   border-radius:$block-radius;
+// }
+// .block-border{
+//   border: $border-color-base 1px solid;
+// }
+
+.style-wrap{ // 包裹样式元素 不显示
+  display: none;
+}
+
+.vertical-center{
+  position: relative;
+  top:50%;
+  transform: translateY(-50%);
+}
+
+.aclean{
+    color: #000;
+    // &:visited,
+    &:any-link{
+        color: #2c3e50;
+        text-decoration:none;
+    }
+}
+
+.el-tree.tree-patch{
+  .el-tree-node__content{
+      display: flex;
+      flex-direction: row;//方向
+      height: auto;
+      align-items:start;
+      >*{//防止被子元素撑开 类似overflow效果
+          // min-width: 0;
+          min-height: 0;
+      }
+      >.el-tree-node__label{
+          margin-left: 5px;
+          display: block;
+          overflow-y: auto;
+          white-space: normal;
+          word-break: break-all;
+      }
+  }
+}
+.el-tree.tree-child-overflow{
+    .el-tree-node>.el-tree-node__children{
+        overflow: visible;
+    }
+}
+
+.el-input.num-patch {
+  input[type="number"]{
+      -moz-appearance: textfield;
+  }
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+  }
+}
+
+.el-input-number.num-patch {
+  .el-input-number__decrease,
+  .el-input-number__increase{
+    display: none;
+  }
+  input.el-input__inner{
+    padding: 0 15px;
+  }
+}
+
+.mp-dot{
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  overflow: hidden;
+  &.red{
+    background-image: radial-gradient(farthest-corner at 40% 30%, #fbb, #f33, #f00);
+    &.dark{
+      background-image: radial-gradient(farthest-corner at 40% 30%, #f88, #f22, #800);
+    }
+  }
+  &.green{
+    background-image: radial-gradient(farthest-corner at 40% 30%, #bfb, #3f3, #0f0);
+    &.dark{
+      background-image: radial-gradient(farthest-corner at 40% 30%, #8f8, #2f2, #080);
+    }
+  }
+  &.blue{
+    background-image: radial-gradient(farthest-corner at 40% 30%, #bbf, #33f, #00f);
+    &.dark{
+      background-image: radial-gradient(farthest-corner at 40% 30%, #88f, #22f, #008);
+    }
+  }
+  &.gray{
+    background-image: radial-gradient(farthest-corner at 40% 30%, #bbb, #333, #000);
+    &.dark{
+      background-image: radial-gradient(farthest-corner at 40% 30%, #888, #222, #000);
+    }
+  }
+}
+.nowrap{//全局超出...显示样式
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+.space-pre{
+  white-space: pre;
+}
+.space-pre-wrap{
+  white-space: pre-wrap;
+}
+.space-pre-line{
+  white-space: pre-line;
+}
+
+.vhidden{
+  visibility:hidden;
+}
+.display-none{
+  display:none;
+}
+
+.el-divider.dpatch{
+  margin: 0;
+}
+.el-divider--vertical.full{
+  height: 100%;
+}
+.height-auto{
+    height: auto;
+}
+
+.bg-cover{
+  background-position:center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+.bg-contain{
+  background-position:center;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.obj-fill{
+    object-fit:fill;
+}
+.obj-contain{
+    object-fit:contain;
+}
+.obj-cover{
+    object-fit:cover;
+}
+.obj-none{
+    object-fit:none;
+}
+.obj-scale-down{
+    object-fit:scale-down;
+}
+
+.obj-center,
+.obj-fill.center,
+.obj-contain.center,
+.obj-cover.center,
+.obj-none.center,
+.obj-scale-down.center{
+    object-position:50% 50%;
+}
+
+
+.el-tabs.flex-tabs{
+  display: flex;
+  flex-direction: column;//方向
+  flex-wrap: nowrap;
+  justify-content: center;//轴线分布
+  align-items: stretch;//正交分布
+  align-content: stretch;//整体对齐
+
+  >:first-child{
+    flex: none;
+    flex: 0 0 auto;
+  }
+  >:last-child{
+    flex: auto;
+    flex: 1 1 auto;
+  }
+  .el-tab-pane{
+    width: 100%;
+    height: 100%;
+  }
+}
+
+.form-flex{
+    &.el-form-item,.el-form-item{
+
+        display: flex;
+        // flex-direction: column;//方向
+        flex-direction: row;//方向
+        flex-wrap: nowrap;
+        justify-content: center;//轴线分布
+        align-items: stretch;//正交分布
+        align-content: stretch;//整体对齐
+
+        // >div{
+        >*{//防止被子元素撑开 类似overflow效果
+            min-width: 0;
+            min-height: 0;
+        }
+        .el-form-item__label{
+            float: none;
+
+            // .flex-none{//flex子块使用原始尺寸
+            flex: none;
+            flex: 0 0 auto;
+        }
+        .el-form-item__content{
+            // .flex-auto{//flex子块按内容比例自动撑开
+            flex: auto;
+            flex: 1 1 auto;
+            margin-left: 0 !important;
+        }
+    }
+}
+
+.margin-bottom-0,
+.el-form-item.margin-bottom-0{
+    margin-bottom: 0;
+}
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+}
+input[type="number"]{
+    -moz-appearance: textfield;
+}
+.float-left{
+  float: left;
+}
+.float-right {
+  float: right;
+}
+.display-block {
+  display: block;
+}
+.display-in {
+  display: inline-block;
+}
+.w300,.w300.el-input, .w300.el-input-number {
+  width: 300px;
+}
+.w400,.w400.el-input, .w400.el-input-number {
+  width: 400px;
+}
+.w200,.w200.el-input, .w200.el-input-number {
+  width: 200px;
+}
+.w100,.w100.el-input, .w100.el-input-number {
+  width: 100px;
+}
+.w150,.w150.el-input, .w150.el-input-number {
+  width: 150px;
+}
+
+.pf-border{
+    border: 1px solid #ccc;
+}
+.pf-border-bottom{
+    border-bottom: 1px solid #ccc;
+}
+.pf-border-top{
+    border-top: 1px solid #ccc;
+}
+.pf-border-left{
+    border-left: 1px solid #ccc;
+}
+.pf-border-right{
+    border-right: 1px solid #ccc;
+}
+.margin-auto{
+    margin: 0 auto;
+}
