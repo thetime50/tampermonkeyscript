@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         code-no-translate
 // @namespace    http://thetime50.com/
-// @version      0.1
+// @version      0.2
 // @description  try to take over the world!
 // @author       thetime50
 // @match        https://pyimagesearch.com/*
