@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         zero reader login
-// @namespace    http://localhost:8080/
+// @namespace    http://thetime50.com/
 // @version      0.2
 // @description  自动登录脚本 最终可以免登录获取数据但是没实现自动登录
 // @author       You

@@ -17,12 +17,12 @@
     let classList = []
     // https://pyimagesearch.com/
     if(location.host.indexOf('pyimagesearch')){
-        classList = ['enlighter-toolbar-bottom','[class*=highlight-source-]']
+        classList = ['.enlighter-codegroup-wrapper']
     }
     // https://github.com/
     if(location.host.indexOf('github')){
         // js-blob-code-container blob-code-content
-        classList = ['table[data-tagsearch-lang]']
+        classList = ['table[data-tagsearch-lang]','[class*=highlight-source-]']
     }
     if(classList.length > 0){
         classList.forEach((v,i,a)=>{

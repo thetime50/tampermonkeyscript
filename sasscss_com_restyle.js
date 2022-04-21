@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         sasscss.com restyle
-// @namespace    http://www.sasscss.com
+// @namespace    http://thetime50.com/
 // @version      0.2
 // @description  sasscss.com restyle
 // @author       TheTime50
