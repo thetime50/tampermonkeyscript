@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name         input_cursor
 // @namespace    http://thetime50.com/
-// @version      0.1
+// @version      0.2
 // @description  try to take over the world!
 // @author       thetime50
-// @match        https://*
+// @match        *://*/*
 // @grant        none
 // @require      http://libs.baidu.com/jquery/1.7.2/jquery.min.js
 // @updateURL    https://thetime50.github.io/tampermonkeyscript/input_cursor.js
