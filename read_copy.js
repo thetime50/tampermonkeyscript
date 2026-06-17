@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         read_copy
 // @namespace    http://thetime50.com/
-// @version      0.6
+// @version      0.7
 // @description  try to take over the world!
 // @author       You
 // @match        https://www.bilibili.com/read/*
@@ -101,6 +101,30 @@ function waitElement(selector){
 
     // 新浪财经 
     async function sinaFinanceAutoCloseWindow(){
+        const type = "23,11,12,41,31,33,71,73,81"
+        // let typeMap = {
+        //     "11": "A 股",
+        //     "12": "B 股",
+        //     "13": "权证",
+        //     "14": "期货",
+        //     "15": "债券",
+        //     "21": "开基",
+        //     "22": "ETF",
+        //     "23": "LOF",
+        //     "24": "货基",
+        //     "25": "QDII",
+        //     "26": "封基",
+        //     "31": "港股",
+        //     "32": "窝轮",
+        //     "33": "港指数",
+        //     "41": "美股",
+        //     "42": "外期",
+        //     "71": "外汇",
+        //     "73": "OTC",
+        //     "81": "债券",
+        //     "82": "债券"
+        // }
+        
         let symbolIds = JSON.parse(localStorage.getItem('symbolIds')) || []
 
         let compareIndexH5Is = $(await waitElement('#compareIndexH5 .is'))
@@ -125,8 +149,36 @@ function waitElement(selector){
         compareIndexH5Is.css({
             top: 'unset',
             bottom: '25px',
-            width: '180px',
+            width: '130px',
         })
+
+        async function queryScript(url){
+            let script = document.createElement('script')
+            script.src = url
+            document.body.appendChild(script)
+            return new Promise((resolve, reject) => {
+                script.onload = () => {
+                    resolve(script.responseText)
+                    document.body.removeChild(script)
+                }
+                script.onerror = () => {
+                    reject(new Error('queryScript error:'+url))
+                    document.body.removeChild(script)
+                }
+            })
+        }
+        async function searchSymbol(symbolId){
+            // https://suggest3.sinajs.cn/suggest/type=23,11,12,41,31,33,71,73,81&key=d&name=suggestdata_1781734566181
+            // 使用 script标签请求 返回值在neam里面
+            const name = `suggestdata_${Date.now()}`
+            let url = `https://suggest3.sinajs.cn/suggest/type=${type}&key=${symbolId}&name=${name}`
+            let res = await queryScript(url)
+            const data = window[name]
+            if (data) {
+                return data.split(';').map(v=>v.split(','))
+            }
+            return null
+        }
         function addSymbolItem(symbolId, name){
             let $item = $('<div class="i" style="display: flex;"></div>')
                 .css({flex: '1'})
@@ -148,7 +200,7 @@ function waitElement(selector){
             addSymbolItem(v.id, v.name)
         })
 
-        setInterval(()=>{
+        setInterval(async ()=>{
             let addNewSymbol = false
             // 自动关闭窗口 间隔0.3s循环执行
             document.querySelectorAll('[class*="close"]').forEach(el=>{
@@ -160,15 +212,22 @@ function waitElement(selector){
             /* 如果selectAll #h5CompareCon>[data-symbol] 有值 去重加入symbolIds数组
             */
             let symbolEls = document.querySelectorAll('#h5CompareCon>[data-symbol]')
-            symbolEls.forEach(v=>{
+            let ids = compareIndexH5Is.find('a').map((i, el) => {
+                return el.getAttribute('x-symbol') || 
+                    el.getAttribute('symbol')
+            }).get()
+            for(let i = 0; i < symbolEls.length; i++) {
+                let v = symbolEls[i]
                 let symbolId = v.getAttribute('data-symbol')
-                if (!symbolIds.some(v => v.id === symbolId)) {
-                    let name = $(v).text().trim() || symbolId
+                if (!ids.includes(symbolId)) {
+                    // let name = $(v).text().trim() || symbolId
+                    let symbolData = await searchSymbol(symbolId)
+                    let name = symbolData[0] && symbolData[0][4] || $(v).text().trim() || symbolId
                     symbolIds.push({id: symbolId, name})
                     addSymbolItem(symbolId, name)
                     addNewSymbol = true
                 }
-            })
+            }
             if (addNewSymbol) {
                 localStorage.setItem('symbolIds', JSON.stringify(symbolIds))
             }
@@ -192,3 +251,21 @@ function waitElement(selector){
     cfgListExec(cfgList)
     // Your code here...
 })();
+
+this.bind = function(e) {
+    if ("undefined" != typeof e)
+        for (var t in e)
+            this._objectConfig[t] = e[t];
+    this._elementInput = "string" == typeof this._objectConfig.input ? document.getElementById(this._objectConfig.input) : this._objectConfig.input,
+    null != this._objectConfig.loader && (this._elementScriptLoader = "string" == typeof this._objectConfig.loader ? document.getElementById(this._objectConfig.loader) : this._objectConfig.loader),
+    this._elementInput && (this._stringOriginalValue = null == this._objectConfig["default"] || "" == this._objectConfig["default"] ? this._elementInput.value : this._objectConfig["default"],
+    this.changeType(this._objectConfig.type),
+    this._elementInput.value = this._stringOriginalValue,
+    this._elementInput.setAttribute("autocomplete", "off"),
+    this._elementInput.autoComplete = "off",
+    this._aevent(this._elementInput, "focus", this._bind(this._eventFocus)),
+    this._aevent(this._elementInput, "blur", this._bind(this._eventBlur)),
+    this._aevent(this._elementInput, "keyup", this._bind(this._eventButtonUp)),
+    this._aevent(this._elementInput, "mouseup", this._bind(this._eventButtonUp)),
+    this._functionCallback = this._objectConfig.callback)
+}
