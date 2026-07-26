@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         read_copy
 // @namespace    http://thetime50.com/
-// @version      0.10
+// @version      0.11
 // @description  try to take over the world!
 // @author       You
 // @match        https://www.bilibili.com/read/*
@@ -29,12 +29,12 @@
     // console.log(window.getEventListeners(document))
 
     const cfgList=[
-        biliCfg,
+        ...biliCfg(),
         {
             hostname: 'blog.csdn.net',
             cb: ()=>readToCopy(['.prettyprint', '.prettyprint>code','pre', 'pre>code']),
         },
-        sinaFinanceCfg,
+        ...sinaFinanceCfg(),
     ]
 
     cfgListExec(cfgList)
