@@ -49,7 +49,7 @@ async function cfgListExec(list){
                 window.location.hostname.indexOf(v.hostname)>-1
         }
         if(v.includes){
-            return v.includes(window.location.href)
+            return window.location.href.includes(v.includes)
         }
         if(v.re){
             return v.re.test(window.location.href)

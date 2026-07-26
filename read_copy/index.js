@@ -29,12 +29,12 @@
     // console.log(window.getEventListeners(document))
 
     const cfgList=[
-        ...biliCfg(),
+        ...biliCfg,
         {
             hostname: 'blog.csdn.net',
             cb: ()=>readToCopy(['.prettyprint', '.prettyprint>code','pre', 'pre>code']),
         },
-        sinaFinanceCfg(),
+        sinaFinanceCfg,
     ]
 
     cfgListExec(cfgList)
