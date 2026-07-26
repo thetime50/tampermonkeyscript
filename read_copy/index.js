@@ -1,10 +1,11 @@
 // ==UserScript==
 // @name         read_copy
 // @namespace    http://thetime50.com/
-// @version      0.8
+// @version      0.10
 // @description  try to take over the world!
 // @author       You
 // @match        https://www.bilibili.com/read/*
+// @match        https://www.bilibili.com/video/*
 // @match        https://blog.csdn.net/*
 // @match        https://finance.sina.com.cn/realstock/company/*
 // @grant        none

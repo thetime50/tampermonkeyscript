@@ -42,10 +42,11 @@ function removeEventListener(node) {
 }
 
 async function cfgListExec(list){
-    
+    list = list.reduce((arr, v) => arr.concat(v), [])
     let cfg = list.find(v=>{
         if(v.hostname){
-            return window.location.hostname.indexOf(v.hostname)>-1
+            return window.location.href.indexOf(v.hostname)>-1 ||
+                window.location.hostname.indexOf(v.hostname)>-1
         }
         if(v.includes){
             return v.includes(window.location.href)
