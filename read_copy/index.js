@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         read_copy
 // @namespace    http://thetime50.com/
-// @version      0.11
+// @version      0.12
 // @description  try to take over the world!
 // @author       You
 // @match        https://www.bilibili.com/read/*
@@ -34,7 +34,7 @@
             hostname: 'blog.csdn.net',
             cb: ()=>readToCopy(['.prettyprint', '.prettyprint>code','pre', 'pre>code']),
         },
-        ...sinaFinanceCfg(),
+        sinaFinanceCfg(),
     ]
 
     cfgListExec(cfgList)

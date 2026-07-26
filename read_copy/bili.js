@@ -414,10 +414,10 @@ const biliCfg = (() => {
     }
 
     return [{
-        hostname: '//www.bilibili.com/read/',
+        includes: '//www.bilibili.com/read/',
         cb: () => readToCopy(['.unable-reprint']),
     }, {
-        hostname: '//www.bilibili.com/video/',
+        includes: '//www.bilibili.com/video/',
         cb: waitAndInsertToolbar,
     }]
 })()
