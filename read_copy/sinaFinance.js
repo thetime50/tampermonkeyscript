@@ -138,4 +138,4 @@ const sinaFinanceCfg = (() => {
         re:/\/\/finance.sina.com.cn\/realstock\/company\/\w+\/nc.shtml/,
         cb: sinaFinanceAutoCloseWindow,
     }
-})()
+})();

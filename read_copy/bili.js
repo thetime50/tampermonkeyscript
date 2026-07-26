@@ -420,4 +420,4 @@ const biliCfg = (() => {
         includes: '//www.bilibili.com/video/',
         cb: waitAndInsertToolbar,
     }]
-})()
+})();
