@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         read_copy
 // @namespace    http://thetime50.com/
-// @version      0.7
+// @version      0.8
 // @description  try to take over the world!
 // @author       You
 // @match        https://www.bilibili.com/read/*
@@ -9,7 +9,7 @@
 // @match        https://finance.sina.com.cn/realstock/company/*
 // @grant        none
 // @require      http://libs.baidu.com/jquery/1.7.2/jquery.min.js
-// @updateURL    https://thetime50.github.io/tampermonkeyscript/read_copy.js
+// @updateURL    https://thetime50.github.io/tampermonkeyscript/read_copy/index.js
 // ==/UserScript==
 function delay(ms) {
     return new Promise((resolve, reject) => {
