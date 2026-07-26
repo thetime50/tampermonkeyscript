@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         read_copy
 // @namespace    http://thetime50.com/
-// @version      0.12
+// @version      0.13
 // @description  try to take over the world!
 // @author       You
 // @match        https://www.bilibili.com/read/*

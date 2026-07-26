@@ -18,13 +18,62 @@ const biliCfg = (() => {
     let interceptInstalled = false
     let pendingResolve = null
 
+    let toastHideTimer = null
+
     function getAction() {
         const v = localStorage.getItem(ACTION_KEY)
         return ACTIONS.some(a => a.key === v) ? v : 'copyText'
     }
 
+    function getActionLabel(key) {
+        const action = ACTIONS.find(a => a.key === (key || getAction()))
+        return action ? action.label : '复制文本'
+    }
+
     function setAction(key) {
         localStorage.setItem(ACTION_KEY, key)
+        syncMainTitle()
+    }
+
+    function syncMainTitle() {
+        const btn = document.querySelector('#read-copy-bili-sub-btn')
+        if (btn) btn.title = getActionLabel()
+    }
+
+    function ensureToast() {
+        let el = document.querySelector('.read-copy-bili-sub-toast')
+        if (el) return el
+        const item = document.querySelector('.read-copy-bili-sub')
+        if (!item) return null
+        el = document.createElement('div')
+        el.className = 'read-copy-bili-sub-toast'
+        item.appendChild(el)
+        return el
+    }
+
+    function showToast(text, autoHideMs) {
+        const el = ensureToast()
+        if (!el) return
+        if (toastHideTimer) {
+            clearTimeout(toastHideTimer)
+            toastHideTimer = null
+        }
+        el.textContent = text
+        el.classList.add('is-show')
+        if (autoHideMs) {
+            toastHideTimer = setTimeout(() => {
+                hideToast()
+            }, autoHideMs)
+        }
+    }
+
+    function hideToast() {
+        const el = document.querySelector('.read-copy-bili-sub-toast')
+        if (el) el.classList.remove('is-show')
+        if (toastHideTimer) {
+            clearTimeout(toastHideTimer)
+            toastHideTimer = null
+        }
     }
 
     function hasSubtitleSelector() {
@@ -269,13 +318,19 @@ const biliCfg = (() => {
         const action = getAction()
         const btn = document.querySelector('#read-copy-bili-sub-btn')
         if (btn) btn.classList.add('is-loading')
+        showToast('下载中')
         try {
             const { title, data } = await ensureSubtitle()
             if (!data) {
                 console.warn('[bili-subtitle] 无字幕数据')
+                hideToast()
                 return
             }
             await applyAction(action, title, data)
+            showToast(action === 'copyText' ? '已复制' : '下载完成', 1500)
+        } catch (e) {
+            hideToast()
+            throw e
         } finally {
             if (btn) btn.classList.remove('is-loading')
         }
@@ -308,8 +363,7 @@ const biliCfg = (() => {
                 cursor: pointer;
                 padding: 0 4px;
             }
-            .read-copy-bili-sub-main:hover,
-            .read-copy-bili-sub:hover .read-copy-bili-sub-main {
+            .read-copy-bili-sub-main:hover {
                 color: var(--brand_pink, #00a1d6);
             }
             .read-copy-bili-sub-main.is-loading {
@@ -319,7 +373,12 @@ const biliCfg = (() => {
             .read-copy-bili-sub-caret {
                 font-size: 10px;
                 margin-left: 2px;
+                padding: 4px 2px;
                 color: var(--text3, #9499a0);
+                cursor: pointer;
+            }
+            .read-copy-bili-sub-caret:hover {
+                color: var(--brand_pink, #00a1d6);
             }
             .read-copy-bili-sub-menu {
                 display: none;
@@ -335,7 +394,7 @@ const biliCfg = (() => {
                 border-radius: 6px;
                 box-shadow: 0 4px 12px rgba(0,0,0,.1);
             }
-            .read-copy-bili-sub:hover .read-copy-bili-sub-menu {
+            .read-copy-bili-sub-menu.is-open {
                 display: block;
             }
             .read-copy-bili-sub-menu-item {
@@ -350,6 +409,25 @@ const biliCfg = (() => {
             .read-copy-bili-sub-menu-item.is-active {
                 color: var(--brand_pink, #00a1d6);
                 font-weight: 600;
+            }
+            .read-copy-bili-sub-toast {
+                display: none;
+                position: absolute;
+                bottom: calc(100% + 6px);
+                left: 50%;
+                transform: translateX(-50%);
+                z-index: 1001;
+                padding: 4px 10px;
+                font-size: 12px;
+                line-height: 1.4;
+                white-space: nowrap;
+                color: #fff;
+                background: rgba(0, 0, 0, 0.75);
+                border-radius: 4px;
+                pointer-events: none;
+            }
+            .read-copy-bili-sub-toast.is-show {
+                display: block;
             }
         `
         document.head.appendChild(style)
@@ -368,7 +446,9 @@ const biliCfg = (() => {
         installInterceptor()
 
         const $item = $('<div class="video-toolbar-right-item read-copy-bili-sub"></div>')
-        const $btn = $('<button type="button" class="read-copy-bili-sub-main" id="read-copy-bili-sub-btn" title="字幕"></button>').text(String.fromCodePoint(0x1F142))
+        const $btn = $('<button type="button" class="read-copy-bili-sub-main" id="read-copy-bili-sub-btn"></button>')
+            .text(String.fromCodePoint(0x1F142))
+            .attr('title', getActionLabel())
         const $caret = $('<span class="read-copy-bili-sub-caret">▾</span>')
         const $menu = $('<div class="read-copy-bili-sub-menu"></div>')
 
@@ -381,6 +461,22 @@ const biliCfg = (() => {
         })
         renderMenuActive($menu)
 
+        let hideMenuTimer = null
+        function showMenu() {
+            if (hideMenuTimer) {
+                clearTimeout(hideMenuTimer)
+                hideMenuTimer = null
+            }
+            $menu.addClass('is-open')
+        }
+        function scheduleHideMenu() {
+            if (hideMenuTimer) clearTimeout(hideMenuTimer)
+            hideMenuTimer = setTimeout(() => {
+                $menu.removeClass('is-open')
+                hideMenuTimer = null
+            }, 300)
+        }
+
         $btn.on('click', function (e) {
             e.preventDefault()
             e.stopPropagation()
@@ -392,6 +488,10 @@ const biliCfg = (() => {
             setAction($(this).data('action'))
             renderMenuActive($menu)
         })
+        $caret.on('mouseenter', showMenu)
+        $caret.on('mouseleave', scheduleHideMenu)
+        $menu.on('mouseenter', showMenu)
+        $menu.on('mouseleave', scheduleHideMenu)
 
         $item.append($btn).append($caret).append($menu)
         $(toolbar).prepend($item)
@@ -403,7 +503,8 @@ const biliCfg = (() => {
         while (Date.now() < deadline) {
             if (hasSubtitleSelector()) {
                 const toolbar = document.querySelector('.video-toolbar-right')
-                if (toolbar) {
+                // 等待 toolbar>div >1 个元素
+                if (toolbar && toolbar.querySelectorAll(':scope > div').length > 1) {
                     insertToolbarButton(toolbar)
                     return
                 }
