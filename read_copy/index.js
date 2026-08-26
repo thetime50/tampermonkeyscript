@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         read_copy
 // @namespace    http://thetime50.com/
-// @version      0.13
+// @version      0.14
 // @description  try to take over the world!
 // @author       You
 // @match        https://www.bilibili.com/read/*
@@ -14,6 +14,7 @@
 // @require      https://thetime50.github.io/tampermonkeyscript/read_copy/bili.js
 // @require      https://thetime50.github.io/tampermonkeyscript/read_copy/sinaFinance.js
 // @updateURL    https://thetime50.github.io/tampermonkeyscript/read_copy/index.js
+// @downloadURL  https://thetime50.github.io/tampermonkeyscript/read_copy/index.js
 // ==/UserScript==
 
 (async function() {
