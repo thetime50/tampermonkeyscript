@@ -122,7 +122,7 @@ const biliCfg = (() => {
         const name = sanitizeFilename(title)
         const author = ((document.querySelector('.up-name') || {}).textContent || 'unknown').trim()
         data = Object.assign({}, data, {
-            body: [{ from: 0, to: 0, content: `[${title}]-${author}` }].concat((data && data.body) || [])
+            body: [{ from: 0, to: 0, content: `[${title}]-${author}\n` }].concat((data && data.body) || [])
         })
         if (action === 'copyText') {
             await copyText(formatSubtitleText(data))
