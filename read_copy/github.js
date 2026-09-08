@@ -25,8 +25,8 @@ const githubCfg = (() => {
                     display: flex;
                     flex-direction: column;
                     align-items: flex-end;
-                    gap: 6px;
                     font-family: sans-serif;
+                    opacity: 0.7;
                 }
                 .read-copy-gh-fab a {
                     display: flex;
@@ -34,22 +34,40 @@ const githubCfg = (() => {
                     justify-content: center;
                     box-sizing: border-box;
                     min-width: 36px;
-                    height: 36px;
+                    height: 26px;
                     padding: 0 10px;
                     border-radius: 18px;
+                    border: 1px solid rgba(255, 255, 255, 0.25);
                     background: #24292f;
                     color: #fff;
                     text-decoration: none;
                     font-size: 12px;
                     line-height: 1;
-                    box-shadow: 0 2px 8px rgba(0,0,0,.25);
                     white-space: nowrap;
                 }
                 .read-copy-gh-fab-menu {
                     display: none;
+                    position: absolute;
+                    top: 100%;
+                    right: 0;
                     flex-direction: column;
-                    align-items: flex-end;
-                    gap: 6px;
+                    background: #24292f;
+                    border: 1px solid rgba(255, 255, 255, 0.25);
+                    border-radius: 4px;
+                    overflow: hidden;
+                }
+                .read-copy-gh-fab-menu a {
+                    transition: color 0.15s, color 0.15s;
+                    height: 24px;
+                    border: none;
+                    border-radius: 0;
+                    justify-content: flex-start;
+                }
+                .read-copy-gh-fab-menu a:hover, 
+                .read-copy-gh-fab-menu a:focus {
+                    color:#ffa459;
+                    font-weight: bold;
+                    text-shadow: 0 0 1px #2226;
                 }
                 .read-copy-gh-fab:hover .read-copy-gh-fab-menu {
                     display: flex;
@@ -97,7 +115,7 @@ const githubCfg = (() => {
         re: /^https:\/\/[a-z0-9-]+\.github\.io(\/|$)/i,
         cb: injectGithubIoButtons,
     }, {
-        re: /^https:\/\/github\.com\/[^\/?#]+/i,
+        re: /^https:\/\/github\.com\/[^\/?#]+\/?$/i,
         cb: injectGithubComButton,
     }]
 })();
