@@ -122,7 +122,11 @@ const biliCfg = (() => {
         const name = sanitizeFilename(title)
         const author = ((document.querySelector('.up-name') || {}).textContent || 'unknown').trim()
         data = Object.assign({}, data, {
-            body: [{ from: 0, to: 0, content: `[${title}]-${author}\n` }].concat((data && data.body) || [])
+            body: [
+                { from: 0, to: 0, content: `[${title}]-${author}` },
+                { from: 0, to: 0, content: `[${location.origin + location.pathname}]\n` }
+           
+            ].concat((data && data.body) || [])
         })
         if (action === 'copyText') {
             await copyText(formatSubtitleText(data))
@@ -518,11 +522,28 @@ const biliCfg = (() => {
         console.warn('[bili-subtitle] 10s内未找到字幕控件/工具栏')
     }
 
+    async function bindTitleClickCopy() {
+        const deadline = Date.now() + 10000
+        while (Date.now() < deadline) {
+            const el = document.querySelector('.video-info-title-inner')
+            if (el && !el.__readCopyTitleBound) {
+                el.__readCopyTitleBound = true
+                el.addEventListener('click', async () => {
+                    const title = ((document.querySelector('.video-title') || el).textContent || '').trim() || 'unknown'
+                    const author = ((document.querySelector('.up-name') || {}).textContent || 'unknown').trim()
+                    await copyText(`[${title} - ${author}](${location.href})`)
+                })
+                return
+            }
+            await delay(200)
+        }
+    }
+
     return [{
         includes: '//www.bilibili.com/read/',
         cb: () => readToCopy(['.unable-reprint']),
     }, {
         includes: '//www.bilibili.com/video/',
-        cb: waitAndInsertToolbar,
+        cb: () => Promise.all([waitAndInsertToolbar(), bindTitleClickCopy()]),
     }]
 })();

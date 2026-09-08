@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         read_copy
 // @namespace    http://thetime50.com/
-// @version      0.15
+// @version      0.17
 // @description  try to take over the world!
 // @author       You
 // @match        https://www.bilibili.com/read/*
@@ -9,12 +9,15 @@
 // @match        https://blog.csdn.net/*
 // @match        https://finance.sina.com.cn/realstock/company/*
 // @match        https://chat.deepseek.com/a/chat/s/*
+// @match        https://*.github.io/*
+// @match        https://github.com/*
 // @grant        none
 // @require      http://libs.baidu.com/jquery/1.7.2/jquery.min.js
 // @require      https://thetime50.github.io/tampermonkeyscript/read_copy/common.js
 // @require      https://thetime50.github.io/tampermonkeyscript/read_copy/bili.js
 // @require      https://thetime50.github.io/tampermonkeyscript/read_copy/sinaFinance.js
 // @require      https://thetime50.github.io/tampermonkeyscript/read_copy/deepseek.js
+// @require      https://thetime50.github.io/tampermonkeyscript/read_copy/github.js
 // @updateURL    https://thetime50.github.io/tampermonkeyscript/read_copy/index.js
 // @downloadURL  https://thetime50.github.io/tampermonkeyscript/read_copy/index.js
 // ==/UserScript==
@@ -41,6 +44,7 @@
         },
         sinaFinanceCfg,
         deepseekCfg,
+        ...githubCfg,
     ]
 
     cfgListExec(cfgList)
