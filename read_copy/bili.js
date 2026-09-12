@@ -20,9 +20,22 @@ function getBiliCfg(getPSHandle) {
     let subtitleFormatCache = null // { text, formatted }
     let interceptInstalled = false
     let pendingResolve = null
+    let lastSubtitleUrl = location.href
 
     let toastHideTimer = null
 
+    function clearSubtitleCaches() {
+        subtitleCache = null
+        subtitleFormatCache = null
+    }
+
+    function watchUrlChange() {
+        setInterval(() => {
+            if (location.href === lastSubtitleUrl) return
+            lastSubtitleUrl = location.href
+            clearSubtitleCaches()
+        }, 500)
+    }
     function getAction() {
         const v = localStorage.getItem(ACTION_KEY)
         return ACTIONS.some(a => a.key === v) ? v : 'copyText'
@@ -645,6 +658,6 @@ function getBiliCfg(getPSHandle) {
         cb: () => readToCopy(['.unable-reprint']),
     }, {
         includes: '//www.bilibili.com/video/',
-        cb: () => Promise.all([waitAndInsertToolbar(), bindTitleClickCopy()]),
+        cb: () => Promise.all([waitAndInsertToolbar(), bindTitleClickCopy(), watchUrlChange()]),
     }]
 };
