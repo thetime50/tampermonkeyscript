@@ -1,4 +1,4 @@
-const githubCfg = (() => {
+function getGithubCfg() {
     function getGithubIoUser() {
         const m = location.hostname.match(/^([^.]+)\.github\.io$/i)
         return m ? m[1] : null
@@ -118,4 +118,4 @@ const githubCfg = (() => {
         re: /^https:\/\/github\.com\/[^\/?#]+\/?$/i,
         cb: injectGithubComButton,
     }]
-})();
+}

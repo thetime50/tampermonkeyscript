@@ -4,7 +4,7 @@
  */
 function getPlaySiteCfg(getPSHandle){ // 这里不能用const = ()=>{}
     const playSiteHandle = getPSHandle()
-    console.log(1)
+    playSiteHandle.ensureBridge() // 通过插件暴露给全局，让其他项目页面可以用
     return [
         // {
         //     includes: '//pst.thetime50.com/',

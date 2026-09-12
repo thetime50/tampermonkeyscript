@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         site_tool
 // @namespace    http://thetime50.com/
-// @version      0.18
+// @version      0.19
 // @description  try to take over the world!
 // @author       You
 // @match        https://www.bilibili.com/read/*
@@ -44,7 +44,7 @@
     // })
     // console.log(window.getEventListeners(document))
     function getPSHandle(){
-        return getPlaySiteHandle({origin: 'http://pst.thetime50.com'})
+        return getPlaySiteHandle({origin: 'http://pst.thetime50.com'}) // 通过插件跨域请求接口
     }
     const cfgList=[
         ...getPlaySiteCfg(getPSHandle),
@@ -53,9 +53,9 @@
             hostname: 'blog.csdn.net',
             cb: ()=>readToCopy(['.prettyprint', '.prettyprint>code','pre', 'pre>code']),
         },
-        sinaFinanceCfg,
-        deepseekCfg,
-        ...githubCfg,
+        getSinaFinanceCfg(),
+        getDeepseekCfg(),
+        ...getGithubCfg(),
     ]
 
     cfgListExec(cfgList)

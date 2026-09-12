@@ -10,7 +10,7 @@ const getPlaySiteHandle = ((handelCfg = {}) => {
     const BRIDGE_NAME = 'site-tool'
     const BRIDGE_VERSION = '1.0.0'
     // 生产地址；本地调试由 switch-env.js 换为 http://localhost:3000
-    const PLAY_SITE_ORIGIN = handelCfg.origin // 'https://pst.thetime50.com' // 发布 请求线上接口
+    const PLAY_SITE_ORIGIN = handelCfg.origin // 'https://pst.thetime50.com' // 发布 通过插件跨域请求接口
 
     function pageWindow() {
         return (typeof unsafeWindow !== 'undefined' && unsafeWindow) ? unsafeWindow : window

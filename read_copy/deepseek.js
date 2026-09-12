@@ -1,4 +1,4 @@
-const deepseekCfg = (() => {
+function getDeepseekCfg() {
     // deepseek插件
 
     async function deepseekAutoClickCopy() {
@@ -63,4 +63,4 @@ const deepseekCfg = (() => {
         includes: 'chat.deepseek.com/a/chat/s/',
         cb: deepseekAutoClickCopy,
     }
-})();
+}

@@ -1,4 +1,4 @@
-const sinaFinanceCfg = (() => {
+function getSinaFinanceCfg() {
     // 新浪财经 
     async function sinaFinanceAutoCloseWindow(){
         const type = "23,11,12,41,31,33,71,73,81"
@@ -138,4 +138,4 @@ const sinaFinanceCfg = (() => {
         re:/\/\/finance.sina.com.cn\/realstock\/company\/\w+\/nc.shtml/,
         cb: sinaFinanceAutoCloseWindow,
     }
-})();
+}
