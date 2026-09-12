@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         site_tool
 // @namespace    http://thetime50.com/
-// @version      0.19
+// @version      0.20
 // @description  try to take over the world!
 // @author       You
 // @match        https://www.bilibili.com/read/*

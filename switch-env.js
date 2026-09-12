@@ -57,8 +57,12 @@ function bili_text_format(){
             const ORIGIN = `http://localhost:${PORT}`
 
             body = tmMetaEach(body, (meta) => {
-                if (meta.key === '@connect') {
+                if (meta.key === '@connect' && meta.value === PLAY_ONLINE) {
                     return { key: '@connect', value: 'localhost' }
+                }
+                
+                if (meta.key === '@name') {
+                    return { key: '@name', value: 'site_tool_dev' }
                 }
             })
 

@@ -59,7 +59,7 @@ function getBiliCfg(getPSHandle) {
         return el
     }
 
-    function showToast(text, autoHideMs) {
+    function showToast(text, autoHideMs, opts) {
         const el = ensureToast()
         if (!el) return
         if (toastHideTimer) {
@@ -67,6 +67,7 @@ function getBiliCfg(getPSHandle) {
             toastHideTimer = null
         }
         el.textContent = text
+        el.classList.toggle('is-error', !!(opts && opts.error))
         el.classList.add('is-show')
         if (autoHideMs) {
             toastHideTimer = setTimeout(() => {
@@ -77,7 +78,10 @@ function getBiliCfg(getPSHandle) {
 
     function hideToast() {
         const el = document.querySelector('.read-copy-bili-sub-toast')
-        if (el) el.classList.remove('is-show')
+        if (el) {
+            el.classList.remove('is-show')
+            el.classList.remove('is-error')
+        }
         if (toastHideTimer) {
             clearTimeout(toastHideTimer)
             toastHideTimer = null
@@ -96,15 +100,27 @@ function getBiliCfg(getPSHandle) {
         if (subtitleFormatCache && subtitleFormatCache.text === text) {
             return subtitleFormatCache.formatted
         }
-        const res = await playSiteHandle.request('/api/site-tool/text-format', {
-            method: 'POST',
-            body: { text },
-        })
-        if(res.status == 200 && res.data && typeof res.data.text === 'string') {
-            subtitleFormatCache = { text, formatted: res.data.text }
-            return res.data.text
+        try {
+            showToast("AI分段中...")
+            console.log("[bili-subtitle] AI分段中...")
+            const res = await playSiteHandle.request('/api/site-tool/text-format', {
+                method: 'POST',
+                body: { text },
+            })
+            if (res.status == 200 && res.data && typeof res.data.text === 'string') {
+                subtitleFormatCache = { text, formatted: res.data.text }
+                return res.data.text
+            }
+            return text
+        } catch (e) {
+            if (e && e.status === 401) {
+                playSiteHandle.redirectToLogin()
+            }
+            showToast((e && e.message) || String(e), 1500, { error: true })
+            // return text
+            console.log('%cerror', 'color:#f00', e)
+            throw e
         }
-        return text
     }
 
     async function formatSubtitleText(data) {
@@ -112,15 +128,7 @@ function getBiliCfg(getPSHandle) {
         let text = body.map(v => v.content || '').filter(Boolean).join('\n')
 
         if (getFormat()) {
-            try {
-                text = await ensureSubtitleFormat(text)
-            } catch (e) {
-                if (e && e.status === 401) {
-                    playSiteHandle.redirectToLogin()
-                    return
-                }
-                throw e
-            }
+            text = await ensureSubtitleFormat(text)
         }
         return text
     }
@@ -164,6 +172,10 @@ function getBiliCfg(getPSHandle) {
            
             ].concat((data && data.body) || [])
         })
+        if (getFormat() && !subtitleFormatCache && !playSiteHandle.loggedIn) {
+            const me = await playSiteHandle.tryLogin()
+            if (!me) return
+        }
         if (action === 'copyText') {
             await copyText(await formatSubtitleText(data))
         } else if (action === 'downloadText') {
@@ -374,8 +386,8 @@ function getBiliCfg(getPSHandle) {
             await applyAction(action, title, data)
             showToast(action === 'copyText' ? '已复制' : '下载完成', 1500)
         } catch (e) {
-            hideToast()
-            throw e
+            showToast((e && e.message) || String(e), 1500, { error: true })
+            console.log('%cerror', 'color:#f00', e)
         } finally {
             if (btn) btn.classList.remove('is-loading')
         }
@@ -498,8 +510,14 @@ function getBiliCfg(getPSHandle) {
                 white-space: nowrap;
                 color: #fff;
                 background: rgba(0, 0, 0, 0.75);
+                border: 1px solid transparent;
                 border-radius: 4px;
                 pointer-events: none;
+            }
+            .read-copy-bili-sub-toast.is-error {
+                color: #fb7299;
+                background: #fff;
+                border-color: #fb7299;
             }
             .read-copy-bili-sub-toast.is-show {
                 display: block;
@@ -584,7 +602,7 @@ function getBiliCfg(getPSHandle) {
         $menu.on('mouseenter', showMenu)
         $menu.on('mouseleave', scheduleHideMenu)
 
-        $item.append($btn).append($testUserBtn).append($menu).append($testClearBtn).append($caret)
+        $item.append($btn).append($caret).append($menu)
         $(toolbar).prepend($item)
         console.log('[bili-subtitle] 工具栏按钮已插入')
     }
