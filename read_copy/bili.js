@@ -1,4 +1,5 @@
-const biliCfg = (() => {
+function getBiliCfg(getPSHandle) {
+    const playSiteHandle = getPSHandle()
     const SUBTITLE_SELECTORS = [
         '.bpx-player-ctrl-subtitle',
         '[class*="bpx-player-ctrl-subtitle"]',
@@ -16,6 +17,7 @@ const biliCfg = (() => {
     ]
 
     let subtitleCache = null // { title, data }
+    let subtitleFormatCache = null // { text, formatted }
     let interceptInstalled = false
     let pendingResolve = null
 
@@ -31,39 +33,13 @@ const biliCfg = (() => {
         return action ? action.label : '复制文本'
     }
 
-    function getDefaultFormatMap() {
-        const map = {}
-        ACTIONS.forEach(a => {
-            if (a.format) map[a.key] = true
-        })
-        return map
+    function getFormat() {
+        return localStorage.getItem(FORMAT_KEY) === '1'
     }
 
-    function getFormatMap() {
-        try {
-            const raw = localStorage.getItem(FORMAT_KEY)
-            if (raw) return Object.assign(getDefaultFormatMap(), JSON.parse(raw))
-        } catch (e) {}
-        return getDefaultFormatMap()
-    }
-
-    function saveFormatMap(map) {
-        localStorage.setItem(FORMAT_KEY, JSON.stringify(map))
-    }
-
-    function getFormat(key) {
-        return !!getFormatMap()[key || getAction()]
-    }
-
-    function setFormat(key, on) {
-        const map = getFormatMap()
-        map[key] = !!on
-        saveFormatMap(map)
-    }
-
-    function setAction(key) {
+    function setSelection(key, format) {
         localStorage.setItem(ACTION_KEY, key)
-        saveFormatMap(getFormatMap())
+        localStorage.setItem(FORMAT_KEY, format ? '1' : '0')
         syncMainTitle()
     }
 
@@ -116,9 +92,37 @@ const biliCfg = (() => {
         return (name || 'unknown').replace(/[\\/:*?"<>|]/g, '_').trim() || 'unknown'
     }
 
-    function formatSubtitleText(data) {
+    async function ensureSubtitleFormat(text) {
+        if (subtitleFormatCache && subtitleFormatCache.text === text) {
+            return subtitleFormatCache.formatted
+        }
+        const res = await playSiteHandle.request('/api/site-tool/text-format', {
+            method: 'POST',
+            body: { text },
+        })
+        if(res.status == 200 && res.data && typeof res.data.text === 'string') {
+            subtitleFormatCache = { text, formatted: res.data.text }
+            return res.data.text
+        }
+        return text
+    }
+
+    async function formatSubtitleText(data) {
         const body = (data && data.body) || []
-        return body.map(v => v.content || '').filter(Boolean).join('\n')
+        let text = body.map(v => v.content || '').filter(Boolean).join('\n')
+
+        if (getFormat()) {
+            try {
+                text = await ensureSubtitleFormat(text)
+            } catch (e) {
+                if (e && e.status === 401) {
+                    playSiteHandle.redirectToLogin()
+                    return
+                }
+                throw e
+            }
+        }
+        return text
     }
 
     function downloadBlob(filename, content, mime) {
@@ -152,38 +156,18 @@ const biliCfg = (() => {
 
     async function applyAction(action, title, data) {
         const name = sanitizeFilename(title)
-        if (getFormat(action)) {
-            const author = ((document.querySelector('.up-name') || {}).textContent || 'unknown').trim()
-            data = Object.assign({}, data, {
-                body: [
-                    { from: 0, to: 0, content: `[${title}]-${author}` },
-                    { from: 0, to: 0, content: `[${location.origin + location.pathname}]\n` }
-                ].concat((data && data.body) || [])
-            })
-        }
-        if (action === 'copyText' || action === 'downloadText') {
-            let text = formatSubtitleText(data)
-            if (getFormat(action)) {
-                try {
-                    const res = await playSiteHandle.request('/api/site-tool/text-format', {
-                        method: 'POST',
-                        body: { text },
-                    })
-                    if (res.data && typeof res.data.text === 'string') text = res.data.text
-                } catch (e) {
-                    if (e && e.status === 401) {
-                        await playSiteHandle.clearLogin()
-                        playSiteHandle.redirectToLogin()
-                        return
-                    }
-                    throw e
-                }
-            }
-            if (action === 'copyText') {
-                await copyText(text)
-            } else {
-                downloadBlob(name + '.txt', text, 'text/plain;charset=utf-8')
-            }
+        const author = ((document.querySelector('.up-name') || {}).textContent || 'unknown').trim()
+        data = Object.assign({}, data, {
+            body: [
+                { from: 0, to: 0, content: `[${title}]-${author}` },
+                { from: 0, to: 0, content: `[${location.origin + location.pathname}]\n` }
+           
+            ].concat((data && data.body) || [])
+        })
+        if (action === 'copyText') {
+            await copyText(await formatSubtitleText(data))
+        } else if (action === 'downloadText') {
+            downloadBlob(name + '.txt', await formatSubtitleText(data), 'text/plain;charset=utf-8')
         } else if (action === 'downloadSubtitle') {
             downloadBlob(name + '.json', JSON.stringify(data, null, 2), 'application/json;charset=utf-8')
         }
@@ -267,7 +251,7 @@ const biliCfg = (() => {
                 cancelable: true,
                 clientX: x,
                 clientY: y,
-                view: window,
+                view: typeof unsafeWindow !== 'undefined' ? unsafeWindow : window,
             }))
         })
     }
@@ -370,6 +354,7 @@ const biliCfg = (() => {
         if (subtitleCache && subtitleCache.data) {
             return subtitleCache
         }
+        subtitleFormatCache = null
         subtitleCache = await fetchSubtitleBySimulate()
         return subtitleCache
     }
@@ -525,12 +510,12 @@ const biliCfg = (() => {
 
     function renderMenuActive($menu) {
         const action = getAction()
-        const formatMap = getFormatMap()
+        const format = getFormat()
         $menu.find('.read-copy-bili-sub-menu-item').each(function () {
             const key = $(this).data('action')
             $(this).toggleClass('is-active', key === action)
             $(this).find('.read-copy-bili-sub-menu-format')
-                .toggleClass('is-active', !!formatMap[key])
+                .toggleClass('is-active', key === action && format)
         })
     }
 
@@ -541,7 +526,7 @@ const biliCfg = (() => {
 
         const $item = $('<div class="video-toolbar-right-item read-copy-bili-sub"></div>')
         const $btn = $('<button type="button" class="read-copy-bili-sub-main" id="read-copy-bili-sub-btn"></button>')
-            .text(String.fromCodePoint(0x1F142))
+            .text("🅂") // String.fromCodePoint(0x1F142))
             .attr('title', getActionLabel())
         const $caret = $('<span class="read-copy-bili-sub-caret">▾</span>')
         const $menu = $('<div class="read-copy-bili-sub-menu"></div>')
@@ -584,14 +569,14 @@ const biliCfg = (() => {
             e.preventDefault()
             e.stopPropagation()
             if ($(e.target).closest('.read-copy-bili-sub-menu-format').length) return
-            setAction($(this).data('action'))
+            setSelection($(this).data('action'), false)
             renderMenuActive($menu)
         })
         $menu.on('click', '.read-copy-bili-sub-menu-format', function (e) {
             e.preventDefault()
             e.stopPropagation()
             const key = $(this).closest('.read-copy-bili-sub-menu-item').data('action')
-            setFormat(key, !getFormat(key))
+            setSelection(key, true)
             renderMenuActive($menu)
         })
         $caret.on('mouseenter', showMenu)
@@ -599,7 +584,7 @@ const biliCfg = (() => {
         $menu.on('mouseenter', showMenu)
         $menu.on('mouseleave', scheduleHideMenu)
 
-        $item.append($btn).append($caret).append($menu)
+        $item.append($btn).append($testUserBtn).append($menu).append($testClearBtn).append($caret)
         $(toolbar).prepend($item)
         console.log('[bili-subtitle] 工具栏按钮已插入')
     }
@@ -644,4 +629,4 @@ const biliCfg = (() => {
         includes: '//www.bilibili.com/video/',
         cb: () => Promise.all([waitAndInsertToolbar(), bindTitleClickCopy()]),
     }]
-})();
+};

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         site_tool
 // @namespace    http://thetime50.com/
-// @version      0.19
+// @version      0.18
 // @description  try to take over the world!
 // @author       You
 // @match        https://www.bilibili.com/read/*
@@ -11,24 +11,24 @@
 // @match        https://chat.deepseek.com/a/chat/s/*
 // @match        https://*.github.io/*
 // @match        https://github.com/*
-// @match        http://localhost:3000/*
-// @match        https://localhost:3000/*
-// @grant        GM_getValue
-// @grant        GM_setValue
+// @match        https://pst.thetime50.com/*
+// --@match        http://pst.thetime50.com/*
 // @grant        GM_xmlhttpRequest
 // @grant        unsafeWindow
-// @connect      localhost
-// @connect      127.0.0.1
+// @connect      pst.thetime50.com
 // @require      http://libs.baidu.com/jquery/1.7.2/jquery.min.js
-// @require      https://thetime50.github.io/tampermonkeyscript/read_copy/common.js
-// @require      https://thetime50.github.io/tampermonkeyscript/read_copy/playSite.js
+// @require      https://thetime50.github.io/tampermonkeyscript/common/common.js
+// @require      https://thetime50.github.io/tampermonkeyscript/common/playSite.js
 // @require      https://thetime50.github.io/tampermonkeyscript/read_copy/bili.js
 // @require      https://thetime50.github.io/tampermonkeyscript/read_copy/sinaFinance.js
 // @require      https://thetime50.github.io/tampermonkeyscript/read_copy/deepseek.js
 // @require      https://thetime50.github.io/tampermonkeyscript/read_copy/github.js
+// @require      https://thetime50.github.io/tampermonkeyscript/read_copy/play-site.js
 // @updateURL    https://thetime50.github.io/tampermonkeyscript/read_copy/index.js
 // @downloadURL  https://thetime50.github.io/tampermonkeyscript/read_copy/index.js
 // ==/UserScript==
+
+// 本地调试: 仓库根目录 node switch-env.js ，油猴安装 http://localhost:5500/read_copy/index.js
 
 // update
 
@@ -43,9 +43,12 @@
     //     el.oncopy=()=>{}
     // })
     // console.log(window.getEventListeners(document))
-
+    function getPSHandle(){
+        return getPlaySiteHandle({origin: 'http://pst.thetime50.com'})
+    }
     const cfgList=[
-        ...biliCfg,
+        ...getPlaySiteCfg(getPSHandle),
+        ...getBiliCfg(getPSHandle),
         {
             hostname: 'blog.csdn.net',
             cb: ()=>readToCopy(['.prettyprint', '.prettyprint>code','pre', 'pre>code']),
