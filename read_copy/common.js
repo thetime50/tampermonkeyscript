@@ -43,7 +43,7 @@ function removeEventListener(node) {
 
 async function cfgListExec(list){
     list = list.reduce((arr, v) => arr.concat(v), [])
-    let cfg = list.find(v=>{
+    const matched = list.filter(v=>{
         if(v.hostname){
             return window.location.href.indexOf(v.hostname)>-1 ||
                 window.location.hostname.indexOf(v.hostname)>-1
@@ -56,7 +56,7 @@ async function cfgListExec(list){
         }
         return false
     })
-    if (cfg) {
+    for (const cfg of matched) {
         try{
             await cfg.cb()
         } catch (e) {

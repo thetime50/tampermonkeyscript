@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         read_copy
+// @name         site_tool
 // @namespace    http://thetime50.com/
-// @version      0.18
+// @version      0.19
 // @description  try to take over the world!
 // @author       You
 // @match        https://www.bilibili.com/read/*
@@ -11,9 +11,17 @@
 // @match        https://chat.deepseek.com/a/chat/s/*
 // @match        https://*.github.io/*
 // @match        https://github.com/*
-// @grant        none
+// @match        http://localhost:3000/*
+// @match        https://localhost:3000/*
+// @grant        GM_getValue
+// @grant        GM_setValue
+// @grant        GM_xmlhttpRequest
+// @grant        unsafeWindow
+// @connect      localhost
+// @connect      127.0.0.1
 // @require      http://libs.baidu.com/jquery/1.7.2/jquery.min.js
 // @require      https://thetime50.github.io/tampermonkeyscript/read_copy/common.js
+// @require      https://thetime50.github.io/tampermonkeyscript/read_copy/playSite.js
 // @require      https://thetime50.github.io/tampermonkeyscript/read_copy/bili.js
 // @require      https://thetime50.github.io/tampermonkeyscript/read_copy/sinaFinance.js
 // @require      https://thetime50.github.io/tampermonkeyscript/read_copy/deepseek.js

@@ -8,9 +8,10 @@ const biliCfg = (() => {
     // .bpx-player-ctrl-subtitle-major-inner>.bpx-player-ctrl-subtitle-language-item
 
     const ACTION_KEY = 'read_copy_bili_subtitle_action'
+    const FORMAT_KEY = 'read_copy_bili_subtitle_format'
     const ACTIONS = [
-        { key: 'copyText', label: '复制文本' },
-        { key: 'downloadText', label: '下载文本' },
+        { key: 'copyText', label: '复制文本', format: true },
+        { key: 'downloadText', label: '下载文本', format: true },
         { key: 'downloadSubtitle', label: '下载字幕' },
     ]
 
@@ -30,8 +31,39 @@ const biliCfg = (() => {
         return action ? action.label : '复制文本'
     }
 
+    function getDefaultFormatMap() {
+        const map = {}
+        ACTIONS.forEach(a => {
+            if (a.format) map[a.key] = true
+        })
+        return map
+    }
+
+    function getFormatMap() {
+        try {
+            const raw = localStorage.getItem(FORMAT_KEY)
+            if (raw) return Object.assign(getDefaultFormatMap(), JSON.parse(raw))
+        } catch (e) {}
+        return getDefaultFormatMap()
+    }
+
+    function saveFormatMap(map) {
+        localStorage.setItem(FORMAT_KEY, JSON.stringify(map))
+    }
+
+    function getFormat(key) {
+        return !!getFormatMap()[key || getAction()]
+    }
+
+    function setFormat(key, on) {
+        const map = getFormatMap()
+        map[key] = !!on
+        saveFormatMap(map)
+    }
+
     function setAction(key) {
         localStorage.setItem(ACTION_KEY, key)
+        saveFormatMap(getFormatMap())
         syncMainTitle()
     }
 
@@ -120,18 +152,38 @@ const biliCfg = (() => {
 
     async function applyAction(action, title, data) {
         const name = sanitizeFilename(title)
-        const author = ((document.querySelector('.up-name') || {}).textContent || 'unknown').trim()
-        data = Object.assign({}, data, {
-            body: [
-                { from: 0, to: 0, content: `[${title}]-${author}` },
-                { from: 0, to: 0, content: `[${location.origin + location.pathname}]\n` }
-           
-            ].concat((data && data.body) || [])
-        })
-        if (action === 'copyText') {
-            await copyText(formatSubtitleText(data))
-        } else if (action === 'downloadText') {
-            downloadBlob(name + '.txt', formatSubtitleText(data), 'text/plain;charset=utf-8')
+        if (getFormat(action)) {
+            const author = ((document.querySelector('.up-name') || {}).textContent || 'unknown').trim()
+            data = Object.assign({}, data, {
+                body: [
+                    { from: 0, to: 0, content: `[${title}]-${author}` },
+                    { from: 0, to: 0, content: `[${location.origin + location.pathname}]\n` }
+                ].concat((data && data.body) || [])
+            })
+        }
+        if (action === 'copyText' || action === 'downloadText') {
+            let text = formatSubtitleText(data)
+            if (getFormat(action)) {
+                try {
+                    const res = await playSiteHandle.request('/api/site-tool/text-format', {
+                        method: 'POST',
+                        body: { text },
+                    })
+                    if (res.data && typeof res.data.text === 'string') text = res.data.text
+                } catch (e) {
+                    if (e && e.status === 401) {
+                        await playSiteHandle.clearLogin()
+                        playSiteHandle.redirectToLogin()
+                        return
+                    }
+                    throw e
+                }
+            }
+            if (action === 'copyText') {
+                await copyText(text)
+            } else {
+                downloadBlob(name + '.txt', text, 'text/plain;charset=utf-8')
+            }
         } else if (action === 'downloadSubtitle') {
             downloadBlob(name + '.json', JSON.stringify(data, null, 2), 'application/json;charset=utf-8')
         }
@@ -411,6 +463,36 @@ const biliCfg = (() => {
                 color: var(--text1, #18191c);
                 white-space: nowrap;
             }
+            .read-copy-bili-sub-menu-item.is-split {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 8px;
+                padding-right: 6px;
+            }
+            .read-copy-bili-sub-menu-label {
+                flex: 1;
+            }
+            .read-copy-bili-sub-menu-format {
+                flex: 0 0 auto;
+                width: 22px;
+                height: 22px;
+                padding: 0;
+                border: 1px solid var(--line_regular, #e3e5e7);
+                border-radius: 4px;
+                background: transparent;
+                color: var(--text3, #9499a0);
+                font-size: 12px;
+                font-weight: 600;
+                line-height: 20px;
+                text-align: center;
+                cursor: pointer;
+            }
+            .read-copy-bili-sub-menu-format:hover,
+            .read-copy-bili-sub-menu-format.is-active {
+                color: var(--brand_pink, #00a1d6);
+                border-color: var(--brand_pink, #00a1d6);
+            }
             .read-copy-bili-sub-menu-item:hover {
                 background: var(--bg2, #f1f2f3);
             }
@@ -443,8 +525,12 @@ const biliCfg = (() => {
 
     function renderMenuActive($menu) {
         const action = getAction()
+        const formatMap = getFormatMap()
         $menu.find('.read-copy-bili-sub-menu-item').each(function () {
-            $(this).toggleClass('is-active', $(this).data('action') === action)
+            const key = $(this).data('action')
+            $(this).toggleClass('is-active', key === action)
+            $(this).find('.read-copy-bili-sub-menu-format')
+                .toggleClass('is-active', !!formatMap[key])
         })
     }
 
@@ -461,11 +547,15 @@ const biliCfg = (() => {
         const $menu = $('<div class="read-copy-bili-sub-menu"></div>')
 
         ACTIONS.forEach(a => {
-            $menu.append(
-                $('<div class="read-copy-bili-sub-menu-item"></div>')
-                    .text(a.label)
-                    .data('action', a.key)
-            )
+            const $row = $('<div class="read-copy-bili-sub-menu-item"></div>').data('action', a.key)
+            if (a.format) {
+                $row.addClass('is-split')
+                $row.append($('<span class="read-copy-bili-sub-menu-label"></span>').text(a.label))
+                $row.append($('<button type="button" class="read-copy-bili-sub-menu-format">M</button>'))
+            } else {
+                $row.text(a.label)
+            }
+            $menu.append($row)
         })
         renderMenuActive($menu)
 
@@ -493,7 +583,15 @@ const biliCfg = (() => {
         $menu.on('click', '.read-copy-bili-sub-menu-item', function (e) {
             e.preventDefault()
             e.stopPropagation()
+            if ($(e.target).closest('.read-copy-bili-sub-menu-format').length) return
             setAction($(this).data('action'))
+            renderMenuActive($menu)
+        })
+        $menu.on('click', '.read-copy-bili-sub-menu-format', function (e) {
+            e.preventDefault()
+            e.stopPropagation()
+            const key = $(this).closest('.read-copy-bili-sub-menu-item').data('action')
+            setFormat(key, !getFormat(key))
             renderMenuActive($menu)
         })
         $caret.on('mouseenter', showMenu)
