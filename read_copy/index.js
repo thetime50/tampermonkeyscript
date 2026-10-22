@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         site_tool
 // @namespace    http://thetime50.com/
-// @version      0.21
+// @version      0.22
 // @description  try to take over the world!
 // @author       You
 // @match        https://www.bilibili.com/read/*
@@ -11,6 +11,7 @@
 // @match        https://chat.deepseek.com/a/chat/s/*
 // @match        https://*.github.io/*
 // @match        https://github.com/*
+// @match        https://docs.qq.com/*
 // @match        https://pst.thetime50.com/*
 // --@match        http://pst.thetime50.com/*
 // @grant        GM_xmlhttpRequest
@@ -23,6 +24,7 @@
 // @require      https://thetime50.github.io/tampermonkeyscript/read_copy/sinaFinance.js
 // @require      https://thetime50.github.io/tampermonkeyscript/read_copy/deepseek.js
 // @require      https://thetime50.github.io/tampermonkeyscript/read_copy/github.js
+// @require      https://thetime50.github.io/tampermonkeyscript/read_copy/docsQq.js
 // @require      https://thetime50.github.io/tampermonkeyscript/read_copy/play-site.js
 // @updateURL    https://thetime50.github.io/tampermonkeyscript/read_copy/index.js
 // @downloadURL  https://thetime50.github.io/tampermonkeyscript/read_copy/index.js
@@ -53,6 +55,7 @@
             hostname: 'blog.csdn.net',
             cb: ()=>readToCopy(['.prettyprint', '.prettyprint>code','pre', 'pre>code']),
         },
+        getDocsQqCfg(),
         getSinaFinanceCfg(),
         getDeepseekCfg(),
         ...getGithubCfg(),

@@ -18,23 +18,29 @@ function getBiliCfg(getPSHandle) {
 
     let subtitleCache = null // { title, data }
     let subtitleFormatCache = null // { text, formatted }
+    let lastSubtitleApiCache = null // 最后一次字幕接口响应
     let interceptInstalled = false
     let pendingResolve = null
     let lastSubtitleUrl = location.href
+    let urlObserver = null
 
     let toastHideTimer = null
 
     function clearSubtitleCaches() {
         subtitleCache = null
         subtitleFormatCache = null
+        lastSubtitleApiCache = null
     }
 
     function watchUrlChange() {
-        setInterval(() => {
+        if (urlObserver) return
+        const onUrlChange = () => {
             if (location.href === lastSubtitleUrl) return
             lastSubtitleUrl = location.href
             clearSubtitleCaches()
-        }, 500)
+        }
+        urlObserver = new MutationObserver(onUrlChange)
+        urlObserver.observe(document.documentElement, { childList: true, subtree: true })
     }
     function getAction() {
         const v = localStorage.getItem(ACTION_KEY)
@@ -203,6 +209,7 @@ function getBiliCfg(getPSHandle) {
     }
 
     function onSubtitleData(data) {
+        lastSubtitleApiCache = data
         if (pendingResolve) {
             const resolve = pendingResolve
             pendingResolve = null
@@ -320,8 +327,12 @@ function getBiliCfg(getPSHandle) {
         await delay(300 + Math.random() * 200)
         const aiZh = document.querySelector('[data-lan="ai-zh"]')
         if (aiZh) {
+            // 已激活则不会重新请求，走接口缓存
+            if (aiZh.classList.contains('bpx-state-active') || aiZh.matches('.bpx-state-active')) {
+                return { ok: true, alreadyActive: true }
+            }
             aiZh.click()
-            return true
+            return { ok: true, alreadyActive: false }
         }
         const chinese = Array.from(document.querySelectorAll('*')).find(el =>
             el.childNodes.length === 1 &&
@@ -329,10 +340,13 @@ function getBiliCfg(getPSHandle) {
             el.textContent.trim() === '中文'
         )
         if (chinese) {
+            if (chinese.classList.contains('bpx-state-active') || chinese.matches('.bpx-state-active')) {
+                return { ok: true, alreadyActive: true }
+            }
             chinese.click()
-            return true
+            return { ok: true, alreadyActive: false }
         }
-        return false
+        return { ok: false, alreadyActive: false }
     }
 
     async function fetchSubtitleBySimulate() {
@@ -360,17 +374,28 @@ function getBiliCfg(getPSHandle) {
 
         console.log('[bili-subtitle] 点击AI字幕选项...')
         const selected = await selectAiSubtitle()
-        if (!selected) {
+        if (!selected.ok) {
             console.warn('[bili-subtitle] 未找到AI/中文字幕选项')
             pendingResolve = null
             return { title, data: null }
+        }
+
+        // 已激活：优先用切换视频时自动请求留下的接口缓存
+        if (selected.alreadyActive && lastSubtitleApiCache) {
+            pendingResolve = null
+            return { title, data: lastSubtitleApiCache }
         }
 
         try {
             const data = await dataPromise
             return { title, data }
         } catch (e) {
+            // 等待超时：回退接口缓存
+            if (lastSubtitleApiCache) {
+                return { title, data: lastSubtitleApiCache }
+            }
             console.error('[bili-subtitle]', e)
+            showToast((e && e.message) || '等待字幕请求超时', 1500, { error: true })
             return { title, data: null }
         }
     }
