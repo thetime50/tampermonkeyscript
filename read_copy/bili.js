@@ -197,8 +197,8 @@ function getBiliCfg(getPSHandle) {
         const date = getPubDate()
         const headData = [
             { from: 0, to: 0, content: `[${title}]-${author}` },
-            { from: 0, to: 0, content: `[${location.origin + location.pathname}]\n` },
-            { from: 0, to: 0, content: `[${date}]\n` }
+            { from: 0, to: 0, content: `[${location.origin + location.pathname}]` },
+            { from: 0, to: 0, content: `[${date}]` }
         ]
         if (getFormat() && !subtitleFormatCache && !playSiteHandle.loggedIn) {
             const me = await playSiteHandle.tryLogin()
@@ -212,8 +212,8 @@ function getBiliCfg(getPSHandle) {
         } else if (action === 'downloadText') {
             downloadBlob(name + '.txt', await formatSubtitleText(headData,data), 'text/plain;charset=utf-8')
         } else if (action === 'downloadSubtitle') {
-            data.body = headData.concat(data.body)
-            downloadBlob(name + '.json', JSON.stringify(data, null, 2), 'application/json;charset=utf-8')
+            const jsonData = Object.assign({}, data, { body: headData.concat(data.body) })
+            downloadBlob(name + '.json', JSON.stringify(jsonData, null, 2), 'application/json;charset=utf-8')
         }
     }
 
