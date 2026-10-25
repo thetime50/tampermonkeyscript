@@ -149,7 +149,7 @@ function getBiliCfg(getPSHandle) {
         if (getFormat()) {
             text = await ensureSubtitleFormat(text)
         }
-        text = headData.map(v => v.content || '').filter(Boolean).join('\n') + '\n' + text
+        text = headData.map(v => v.content || '').filter(Boolean).join('\n') + '\n\n' + text
         return text
     }
 
@@ -181,7 +181,10 @@ function getBiliCfg(getPSHandle) {
             console.error('[bili-subtitle] 复制失败', e)
         }
     }
-
+    
+    function getAuthor() {
+        return ((document.querySelector('.right-container .up-info-container .up-name') || {}).textContent || 'unknown').trim()
+    }
     function getPubDate() {
         const pubdate = ((
             document.querySelector('.pubdate-ip-text') ||
@@ -193,7 +196,7 @@ function getBiliCfg(getPSHandle) {
 
     async function applyAction(action, title, data) {
         const name = sanitizeFilename(title)
-        const author = ((document.querySelector('.up-name') || {}).textContent || 'unknown').trim()
+        const author = getAuthor()
         const date = getPubDate()
         const headData = [
             { from: 0, to: 0, content: `[${title}-${author}]` },
@@ -682,7 +685,7 @@ function getBiliCfg(getPSHandle) {
                 el.__readCopyTitleBound = true
                 el.addEventListener('click', async () => {
                     const title = ((document.querySelector('.video-title') || el).textContent || '').trim() || 'unknown'
-                    const author = ((document.querySelector('.up-name') || {}).textContent || 'unknown').trim()
+                    const author = getAuthor()
                     const date = getPubDate()
                     const label = date ? `${title} - ${author} - ${date}` : `${title} - ${author}`
                     await copyText(`[${label}](${location.href})`)
