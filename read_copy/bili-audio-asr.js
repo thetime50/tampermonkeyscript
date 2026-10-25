@@ -75,30 +75,34 @@ function getBiliAudioAsr(deps) {
         return hex
     }
 
-    async function hashAudioUrl(url) {
-        onProgress('计算音频指纹...')
+    function filenameFromUrl(url, audioId) {
+        const name = ((url || '').split('?')[0].split('/').pop() || '')
+        if (name && /\.\w+$/.test(name)) return name
+        return (audioId ? String(audioId) : 'audio') + '.m4s'
+    }
+
+    async function downloadAudio(url) {
+        onProgress('下载音频...')
         const res = await fetch(url, { credentials: 'omit', mode: 'cors' })
         if (!res.ok) throw new Error('下载音频失败 HTTP ' + res.status)
         const buf = await res.arrayBuffer()
+        onProgress('计算音频指纹...')
         const digest = await crypto.subtle.digest('SHA-256', buf)
-        return { hash: bufToHex(digest), size: buf.byteLength }
+        return { buf, hash: bufToHex(digest), size: buf.byteLength }
     }
 
-    async function ensureDigest(audio) {
-        const cached = loadLocalDigest(audio.id)
-        if (cached) return cached
+    async function downloadAudioWithFallback(audio) {
         let lastErr = null
         const urls = [audio.url].concat((audio.candidates || []).filter(u => u !== audio.url))
         for (const url of urls) {
             try {
-                const dig = await hashAudioUrl(url)
-                saveLocalDigest(audio.id, dig.hash, dig.size)
-                return dig
+                const got = await downloadAudio(url)
+                return Object.assign({ url }, got)
             } catch (e) {
                 lastErr = e
             }
         }
-        throw lastErr || new Error('计算音频指纹失败')
+        throw lastErr || new Error('下载音频失败')
     }
 
     async function readResultCache(hash, size) {
@@ -117,17 +121,16 @@ function getBiliAudioAsr(deps) {
         return null
     }
 
-    async function requestAsrSubtitle(url) {
+    async function requestAsrSubtitle(buf, filename) {
         onProgress('语音转字幕中...')
+        const form = new FormData()
+        form.append('audio', new Blob([buf], { type: 'audio/mp4' }), filename || 'audio.m4s')
         const res = await playSiteHandle.request(ASR_API, {
             method: 'POST',
-            body: { url },
+            body: form,
         })
         if (!(res && res.data && typeof res.data.text === 'string')) {
             throw new Error('asr-subtitle 无有效字幕')
-        }
-        if (res.data.hash && res.data.size != null) {
-            // 调用方传入 audioId 时再存；此处由 fetchAsrSubtitle 处理
         }
         return res.data
     }
@@ -185,20 +188,39 @@ function getBiliAudioAsr(deps) {
             throw new Error('未找到可拉取的音频流')
         }
 
-        const dig = await ensureDigest(audio)
+        let dig = loadLocalDigest(audio.id)
+        if (dig) {
+            onProgress('查询字幕缓存...')
+            const cachedText = await readResultCache(dig.hash, dig.size)
+            if (cachedText) {
+                return {
+                    title: getVideoTitle(),
+                    data: srtToSubtitleData(cachedText),
+                    from: 'cache',
+                }
+            }
+        }
+
+        // 缓存未命中：下载音频，先算指纹再查一次，仍无则 multipart 上传 audio
+        const fresh = pickAudioFromPlayinfo() || audio
+        const downloaded = await downloadAudioWithFallback(fresh)
+        dig = { hash: downloaded.hash, size: downloaded.size }
+        saveLocalDigest(fresh.id || audio.id, dig.hash, dig.size)
+
         onProgress('查询字幕缓存...')
-        const cachedText = await readResultCache(dig.hash, dig.size)
-        if (cachedText) {
+        const cachedAfterDownload = await readResultCache(dig.hash, dig.size)
+        if (cachedAfterDownload) {
             return {
                 title: getVideoTitle(),
-                data: srtToSubtitleData(cachedText),
+                data: srtToSubtitleData(cachedAfterDownload),
                 from: 'cache',
             }
         }
 
-        // 哈希可能耗时，重新取地址避免 CDN 签名过期
-        const fresh = pickAudioFromPlayinfo() || audio
-        const asr = await requestAsrSubtitle(fresh.url)
+        const asr = await requestAsrSubtitle(
+            downloaded.buf,
+            filenameFromUrl(downloaded.url, fresh.id || audio.id)
+        )
         if (asr.hash && asr.size != null) {
             saveLocalDigest(fresh.id || audio.id, asr.hash, asr.size)
         }
