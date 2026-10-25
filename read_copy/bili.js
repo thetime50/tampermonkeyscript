@@ -196,7 +196,7 @@ function getBiliCfg(getPSHandle) {
         const author = ((document.querySelector('.up-name') || {}).textContent || 'unknown').trim()
         const date = getPubDate()
         const headData = [
-            { from: 0, to: 0, content: `[${title}]-${author}` },
+            { from: 0, to: 0, content: `[${title}-${author}]` },
             { from: 0, to: 0, content: `[${location.origin + location.pathname}]` },
             { from: 0, to: 0, content: `[${date}]` }
         ]
