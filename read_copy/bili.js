@@ -142,13 +142,14 @@ function getBiliCfg(getPSHandle) {
         }
     }
 
-    async function formatSubtitleText(data) {
+    async function formatSubtitleText(headData,data) {
         const body = (data && data.body) || []
         let text = body.map(v => v.content || '').filter(Boolean).join('\n')
 
         if (getFormat()) {
             text = await ensureSubtitleFormat(text)
         }
+        text = headData.map(v => v.content || '').filter(Boolean).join('\n') + '\n' + text
         return text
     }
 
@@ -194,22 +195,24 @@ function getBiliCfg(getPSHandle) {
         const name = sanitizeFilename(title)
         const author = ((document.querySelector('.up-name') || {}).textContent || 'unknown').trim()
         const date = getPubDate()
-        data = Object.assign({}, data, {
-            body: [
-                { from: 0, to: 0, content: `[${title}]-${author}` },
-                { from: 0, to: 0, content: `[${location.origin + location.pathname}]\n` },
-                { from: 0, to: 0, content: `[${date}]\n` }
-            ].concat((data && data.body) || [])
-        })
+        const headData = [
+            { from: 0, to: 0, content: `[${title}]-${author}` },
+            { from: 0, to: 0, content: `[${location.origin + location.pathname}]\n` },
+            { from: 0, to: 0, content: `[${date}]\n` }
+        ]
         if (getFormat() && !subtitleFormatCache && !playSiteHandle.loggedIn) {
             const me = await playSiteHandle.tryLogin()
-            if (!me) return
+            if (!me) {
+                playSiteHandle.redirectToLogin()
+                return
+            }
         }
         if (action === 'copyText') {
-            await copyText(await formatSubtitleText(data))
+            await copyText(await formatSubtitleText(headData,data))
         } else if (action === 'downloadText') {
-            downloadBlob(name + '.txt', await formatSubtitleText(data), 'text/plain;charset=utf-8')
+            downloadBlob(name + '.txt', await formatSubtitleText(headData,data), 'text/plain;charset=utf-8')
         } else if (action === 'downloadSubtitle') {
+            data.body = headData.concat(data.body)
             downloadBlob(name + '.json', JSON.stringify(data, null, 2), 'application/json;charset=utf-8')
         }
     }
