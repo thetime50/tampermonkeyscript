@@ -6,6 +6,11 @@ function getBiliCfg(getPSHandle) {
         '[class*="subtitle"]',
         '.bpx-player-subtitle-wrap',
     ]
+    // 真正的字幕控制按钮（排除仅用于渲染的 subtitle-wrap）
+    const SUBTITLE_BUTTON_SELECTORS = [
+        '.bpx-player-ctrl-subtitle',
+        '[class*="bpx-player-ctrl-subtitle"]',
+    ]
     // .bpx-player-ctrl-subtitle-major-inner>.bpx-player-ctrl-subtitle-language-item
 
     const ACTION_KEY = 'read_copy_bili_subtitle_action'
@@ -25,6 +30,11 @@ function getBiliCfg(getPSHandle) {
     let urlObserver = null
 
     let toastHideTimer = null
+
+    const asrApi = getBiliAudioAsr({
+        playSiteHandle,
+        onProgress: function (text) { showToast(text) },
+    })
 
     function clearSubtitleCaches() {
         subtitleCache = null
@@ -109,6 +119,10 @@ function getBiliCfg(getPSHandle) {
 
     function hasSubtitleSelector() {
         return SUBTITLE_SELECTORS.some(s => document.querySelector(s))
+    }
+
+    function hasSubtitleButton() {
+        return SUBTITLE_BUTTON_SELECTORS.some(s => document.querySelector(s))
     }
 
     function sanitizeFilename(name) {
@@ -199,7 +213,7 @@ function getBiliCfg(getPSHandle) {
         const author = getAuthor()
         const date = getPubDate()
         const headData = [
-            { from: 0, to: 0, content: `[${title}-${author}]` },
+            { from: 0, to: 0, content: `[${title} - ${author}]` },
             { from: 0, to: 0, content: `[${location.origin + location.pathname}]` },
             { from: 0, to: 0, content: `[${date}]` }
         ]
@@ -421,7 +435,27 @@ function getBiliCfg(getPSHandle) {
             return subtitleCache
         }
         subtitleFormatCache = null
+
+        // 无字幕按钮：B 站已登录则走音频 ASR
+        if (!hasSubtitleButton()) {
+            if (!asrApi.isBiliLoggedIn()) {
+                showToast('无字幕且未登录 B 站', 1500, { error: true })
+                return { title: 'unknown', data: null }
+            }
+            subtitleCache = await asrApi.fetchSubtitleByAsr()
+            return subtitleCache
+        }
+
         subtitleCache = await fetchSubtitleBySimulate()
+        if (subtitleCache && subtitleCache.data) {
+            return subtitleCache
+        }
+
+        // 有字幕按钮但无中文选项 / 未拿到数据：登录态下落到 ASR
+        if (asrApi.isBiliLoggedIn()) {
+            subtitleCache = await asrApi.fetchSubtitleByAsr()
+            return subtitleCache
+        }
         return subtitleCache
     }
 
@@ -664,13 +698,11 @@ function getBiliCfg(getPSHandle) {
     async function waitAndInsertToolbar() {
         const deadline = Date.now() + 10000
         while (Date.now() < deadline) {
-            if (hasSubtitleSelector()) {
-                const toolbar = document.querySelector('.video-toolbar-right')
-                // 等待 toolbar>div >1 个元素
-                if (toolbar && toolbar.querySelectorAll(':scope > div').length > 1) {
-                    insertToolbarButton(toolbar)
-                    return
-                }
+            const toolbar = document.querySelector('.video-toolbar-right')
+            // 等待 toolbar>div >1 个元素（无字幕按钮时也插入，供 ASR 回退）
+            if (toolbar && toolbar.querySelectorAll(':scope > div').length > 1) {
+                insertToolbarButton(toolbar)
+                return
             }
             await delay(200)
         }

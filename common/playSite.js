@@ -11,6 +11,7 @@ const getPlaySiteHandle = ((handelCfg = {}) => {
     const BRIDGE_VERSION = '1.0.0'
     // 生产地址；本地调试由 switch-env.js 换为 http://localhost:3000
     const PLAY_SITE_ORIGIN = handelCfg.origin // 'https://pst.thetime50.com' // 发布 通过插件跨域请求接口
+    window.__psdbg__ = false
 
     function pageWindow() {
         return (typeof unsafeWindow !== 'undefined' && unsafeWindow) ? unsafeWindow : window
@@ -59,6 +60,9 @@ const getPlaySiteHandle = ((handelCfg = {}) => {
     function request(path, options) {
         options = options || {}
         return new Promise((resolve, reject) => {
+            if (window.__psdbg__){
+                console.log('request', path, options)
+            }
             const headers = Object.assign({}, options.headers || {})
             let data = options.body
             if (data != null && typeof data !== 'string') {

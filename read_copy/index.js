@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         site_tool
 // @namespace    http://thetime50.com/
-// @version      0.27
+// @version      0.28
 // @description  try to take over the world!
 // @author       You
 // @match        https://www.bilibili.com/read/*
@@ -20,6 +20,7 @@
 // @require      http://libs.baidu.com/jquery/1.7.2/jquery.min.js
 // @require      https://thetime50.github.io/tampermonkeyscript/common/common.js
 // @require      https://thetime50.github.io/tampermonkeyscript/common/playSite.js
+// @require      https://thetime50.github.io/tampermonkeyscript/read_copy/bili-audio-asr.js
 // @require      https://thetime50.github.io/tampermonkeyscript/read_copy/bili.js
 // @require      https://thetime50.github.io/tampermonkeyscript/read_copy/sinaFinance.js
 // @require      https://thetime50.github.io/tampermonkeyscript/read_copy/deepseek.js
