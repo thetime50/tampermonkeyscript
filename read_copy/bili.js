@@ -181,14 +181,24 @@ function getBiliCfg(getPSHandle) {
         }
     }
 
+    function getPubDate() {
+        const pubdate = ((
+            document.querySelector('.pubdate-ip-text') ||
+            document.querySelector('.pubdate') ||
+            document.querySelector('.video-info-detail .pubdate')
+        ) || {}).textContent || ''
+        return pubdate.replace(/^\s*发布[于於]?\s*/, '').trim()
+    }
+
     async function applyAction(action, title, data) {
         const name = sanitizeFilename(title)
         const author = ((document.querySelector('.up-name') || {}).textContent || 'unknown').trim()
+        const date = getPubDate()
         data = Object.assign({}, data, {
             body: [
                 { from: 0, to: 0, content: `[${title}]-${author}` },
-                { from: 0, to: 0, content: `[${location.origin + location.pathname}]\n` }
-           
+                { from: 0, to: 0, content: `[${location.origin + location.pathname}]\n` },
+                { from: 0, to: 0, content: `[${date}]\n` }
             ].concat((data && data.body) || [])
         })
         if (getFormat() && !subtitleFormatCache && !playSiteHandle.loggedIn) {
@@ -670,7 +680,9 @@ function getBiliCfg(getPSHandle) {
                 el.addEventListener('click', async () => {
                     const title = ((document.querySelector('.video-title') || el).textContent || '').trim() || 'unknown'
                     const author = ((document.querySelector('.up-name') || {}).textContent || 'unknown').trim()
-                    await copyText(`[${title} - ${author}](${location.href})`)
+                    const date = getPubDate()
+                    const label = date ? `${title} - ${author} - ${date}` : `${title} - ${author}`
+                    await copyText(`[${label}](${location.href})`)
                 })
                 return
             }
