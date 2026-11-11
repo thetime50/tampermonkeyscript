@@ -5,6 +5,7 @@ function getBiliAudioAsr(deps) {
     const playSiteHandle = deps && deps.playSiteHandle
     const onProgress = (deps && deps.onProgress) || function () {}
     const ASR_API = '/api/site-tool/asr-subtitle'
+    const ASR_STREAM_API = '/api/site-tool/asr-subtitle-stream'
     const DIGEST_KEY_PREFIX = 'read_copy_bili_asr_digest_'
 
     function isBiliLoggedIn() {
@@ -75,6 +76,41 @@ function getBiliAudioAsr(deps) {
         return hex
     }
 
+    /** 与服务端 cacheOptionHash 对齐：sha256(`${audioHash}|silence=|speaker=`) */
+    async function cacheDigestHash(audioHash, silenceDb, speakerCount) {
+        const raw = String(audioHash)
+            + '|silence=' + (silenceDb == null ? '' : silenceDb)
+            + '|speaker=' + (speakerCount == null ? '' : speakerCount)
+        const dig = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw))
+        return bufToHex(dig)
+    }
+
+    function showAsrPercent(percent) {
+        const p = Math.max(0, Math.min(100, Math.round(Number(percent) || 0)))
+        onProgress('音频识别进度 ' + p + '%')
+    }
+
+    function mapAsrProgress(evt) {
+        if (!evt || typeof evt !== 'object') return
+        if (evt.phase === 'upload') {
+            if (evt.done) {
+                showAsrPercent(33)
+                return
+            }
+            const total = Number(evt.total) || 0
+            const loaded = Number(evt.loaded) || 0
+            if (total > 0) showAsrPercent((loaded / total) * (100 / 3))
+            else showAsrPercent(0)
+            return
+        }
+        if (evt.phase === 'server') {
+            const serverPct = Number(evt.percent)
+            if (!Number.isFinite(serverPct)) return
+            // 浏览器上传占 1/3，服务端转换占 2/3
+            showAsrPercent(100 / 3 + (serverPct / 100) * (200 / 3))
+        }
+    }
+
     function filenameFromUrl(url, audioId) {
         const name = ((url || '').split('?')[0].split('/').pop() || '')
         if (name && /\.\w+$/.test(name)) return name
@@ -105,7 +141,8 @@ function getBiliAudioAsr(deps) {
         throw lastErr || new Error('下载音频失败')
     }
 
-    async function readResultCache(hash, size) {
+    async function readResultCache(audioHash, size) {
+        const hash = await cacheDigestHash(audioHash)
         const qs = 'api=' + encodeURIComponent(ASR_API)
             + '&hash=' + encodeURIComponent(hash)
             + '&size=' + encodeURIComponent(String(size))
@@ -122,17 +159,21 @@ function getBiliAudioAsr(deps) {
     }
 
     async function requestAsrSubtitle(buf, filename) {
-        onProgress('语音转字幕中...')
+        showAsrPercent(0)
         const form = new FormData()
         form.append('audio', new Blob([buf], { type: 'audio/mp4' }), filename || 'audio.m4s')
-        const res = await playSiteHandle.request(ASR_API, {
+        const res = await playSiteHandle.requestStream(ASR_STREAM_API, {
             method: 'POST',
             body: form,
+            onProgress: mapAsrProgress,
         })
-        if (!(res && res.data && typeof res.data.text === 'string')) {
+        const data = res && res.data
+        const text = data && typeof data.text === 'string' ? data.text : null
+        if (!text) {
             throw new Error('asr-subtitle 无有效字幕')
         }
-        return res.data
+        showAsrPercent(100)
+        return data
     }
 
     function srtTimeToSec(t) {

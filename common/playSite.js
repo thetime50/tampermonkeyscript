@@ -132,20 +132,35 @@ const getPlaySiteHandle = ((handelCfg = {}) => {
                 iframeContentWindow = ev.source
                 return
             }
-            if (msg.type !== 'response' || !msg.id) return
+            if (!msg.id) return
             const pending = pendingRequests[msg.id]
             if (!pending) return
+            if (msg.type === 'progress') {
+                if (typeof pending.onProgress === 'function') {
+                    try { pending.onProgress(msg.data) } catch (e) {}
+                }
+                return
+            }
+            if (msg.type !== 'response') return
             delete pendingRequests[msg.id]
             clearTimeout(pending.timer)
             if (msg.error && !msg.status) {
-                pending.reject(new Error(msg.error))
+                const earlyErr = new Error(msg.error)
+                if (typeof pending.onEnd === 'function') {
+                    try { pending.onEnd(null, earlyErr) } catch (e) {}
+                }
+                pending.reject(earlyErr)
                 return
             }
             if (msg.status === 401) {
                 clearUser()
             }
             if (msg.status >= 200 && msg.status < 300) {
-                pending.resolve({ status: msg.status, data: msg.data })
+                const okRes = { status: msg.status, data: msg.data }
+                if (typeof pending.onEnd === 'function') {
+                    try { pending.onEnd(okRes, null) } catch (e) {}
+                }
+                pending.resolve(okRes)
                 return
             }
             const body = msg.data
@@ -157,6 +172,9 @@ const getPlaySiteHandle = ((handelCfg = {}) => {
             )
             err.status = msg.status
             err.data = body
+            if (typeof pending.onEnd === 'function') {
+                try { pending.onEnd(null, err) } catch (e) {}
+            }
             pending.reject(err)
         })
     }
@@ -249,11 +267,12 @@ const getPlaySiteHandle = ((handelCfg = {}) => {
         }
     }
 
-    function request(path, options) {
+    function postToBridge(path, options, extras) {
+        extras = extras || {}
         options = options || {}
         return (async () => {
             if (pageWindow().__psdbg__) {
-                console.log('request', path, options)
+                console.log(extras.stream ? 'requestStream' : 'request', path, options)
             }
             const win = await ensureRequestIframe()
             const serialized = await serializeBody(options.body, options.headers)
@@ -261,7 +280,7 @@ const getPlaySiteHandle = ((handelCfg = {}) => {
             const isForm = serialized.bodyKind === 'formdata'
             const timeoutMs = options.timeout != null
                 ? options.timeout
-                : (isForm ? 600000 : 60000)
+                : (isForm || extras.stream ? 600000 : 60000)
 
             const payload = {
                 channel: IFRAME_CHANNEL,
@@ -273,23 +292,55 @@ const getPlaySiteHandle = ((handelCfg = {}) => {
                 bodyKind: serialized.bodyKind,
                 bodyText: serialized.bodyText,
                 formParts: serialized.formParts,
+                stream: !!extras.stream,
             }
 
             return new Promise((resolve, reject) => {
                 const timer = setTimeout(() => {
                     delete pendingRequests[id]
-                    reject(new Error('timeout'))
+                    const err = new Error('timeout')
+                    if (typeof extras.onEnd === 'function') {
+                        try { extras.onEnd(null, err) } catch (e) {}
+                    }
+                    reject(err)
                 }, timeoutMs)
-                pendingRequests[id] = { resolve: resolve, reject: reject, timer: timer }
+                pendingRequests[id] = {
+                    resolve: resolve,
+                    reject: reject,
+                    timer: timer,
+                    onProgress: extras.onProgress,
+                    onEnd: extras.onEnd,
+                }
                 try {
                     win.postMessage(payload, PLAY_SITE_ORIGIN, serialized.transfer || [])
                 } catch (e) {
                     clearTimeout(timer)
                     delete pendingRequests[id]
+                    if (typeof extras.onEnd === 'function') {
+                        try { extras.onEnd(null, e) } catch (e2) {}
+                    }
                     reject(e)
                 }
             })
         })()
+    }
+
+    function request(path, options) {
+        return postToBridge(path, options, null)
+    }
+
+    /**
+     * 带进度的请求：中间数据走 onProgress，结束走 Promise / onEnd
+     * @param {string} path
+     * @param {{ method?: string, body?: any, headers?: object, timeout?: number, onProgress?: Function, onEnd?: Function }} options
+     */
+    function requestStream(path, options) {
+        options = options || {}
+        return postToBridge(path, options, {
+            stream: true,
+            onProgress: options.onProgress,
+            onEnd: options.onEnd,
+        })
     }
 
     function redirectToLogin(returnUrl) {
@@ -336,6 +387,7 @@ const getPlaySiteHandle = ((handelCfg = {}) => {
         },
         clearUser,
         request,
+        requestStream,
         requestGmArchived,
         tryLogin,
         ensureBridge,
