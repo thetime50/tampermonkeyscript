@@ -1,6 +1,6 @@
 /**
  * play-site 后台接口公共模块（可选）
- * 登录态仅内存管理；请求经同源 iframe 桥（credentials 带 Cookie）
+ * 登录态仅内存管理；普通请求用 GM 带站点 Cookie；大文件流式走 iframe 桥
  *
  * 站点脚本按需使用：
  *   cb: playSiteHandle.tryLogin
@@ -60,7 +60,7 @@ const getPlaySiteHandle = ((handelCfg = {}) => {
         return w.__site_tool
     }
 
-    /** @deprecated 归档：原 GM_xmlhttpRequest 实现，不修改、不调用 */
+    /** GM_xmlhttpRequest：可携带 play-site Cookie（协议默认鉴权方式） */
     function requestGmArchived(path, options) {
         options = options || {}
         return new Promise((resolve, reject) => {
@@ -331,12 +331,13 @@ const getPlaySiteHandle = ((handelCfg = {}) => {
         })()
     }
 
+    /** 普通 API：走 GM，避免第三方 iframe 带不上 Cookie 被误判未登录 */
     function request(path, options) {
-        return postToBridge(path, options, null)
+        return requestGmArchived(path, options)
     }
 
     /**
-     * 带进度的请求：中间数据走 onProgress，结束走 Promise / onEnd
+     * 带进度的请求（大文件/SSE）：iframe 桥；中间 onProgress，结束 Promise / onEnd
      * @param {string} path
      * @param {{ method?: string, body?: any, headers?: object, timeout?: number, onProgress?: Function, onEnd?: Function }} options
      */
