@@ -193,11 +193,14 @@ const getPlaySiteHandle = ((handelCfg = {}) => {
                 el.setAttribute('title', 'site-tool-bridge')
                 el.style.cssText = 'position:fixed;width:0;height:0;border:0;opacity:0;pointer-events:none;left:-9999px;top:0;'
                 ;(doc.body || doc.documentElement).appendChild(el)
+            } else if (el.src !== PLAY_SITE_ORIGIN + IFRAME_PATH) {
+                el.src = PLAY_SITE_ORIGIN + IFRAME_PATH
             }
             iframeEl = el
 
             const readyTimer = setTimeout(() => {
                 pageWindow().removeEventListener('message', onReady)
+                iframeReadyPromise = null
                 reject(new Error('site-tool bridge timeout'))
             }, 15000)
 
@@ -222,6 +225,9 @@ const getPlaySiteHandle = ((handelCfg = {}) => {
                     }
                 } catch (e) {}
             })
+        }).catch(function (err) {
+            iframeReadyPromise = null
+            throw err
         })
         return iframeReadyPromise
     }

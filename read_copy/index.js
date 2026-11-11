@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         site_tool
 // @namespace    http://thetime50.com/
-// @version      0.33
+// @version      0.34
 // @description  try to take over the world!
 // @author       You
 // @match        https://www.bilibili.com/read/*
@@ -47,7 +47,7 @@
     // })
     // console.log(window.getEventListeners(document))
     function getPSHandle(){
-        return getPlaySiteHandle({origin: 'http://pst.thetime50.com'}) // 通过插件跨域请求接口
+        return getPlaySiteHandle({origin: 'https://pst.thetime50.com'}) // 通过插件跨域请求接口
     }
     const cfgList=[
         ...getPlaySiteCfg(getPSHandle),
