@@ -285,20 +285,50 @@ function getBiliCfg(getPSHandle) {
     }
 
     function waitSubtitleResponse(timeoutMs) {
-        return new Promise((resolve, reject) => {
-            const timer = setTimeout(() => {
+        let timer = null
+        let resolveWrap = null
+        const promise = new Promise((resolve, reject) => {
+            timer = setTimeout(() => {
                 if (pendingResolve === resolveWrap) {
                     pendingResolve = null
                 }
                 reject(new Error('等待字幕请求超时'))
             }, timeoutMs)
 
-            function resolveWrap(data) {
+            resolveWrap = function (data) {
                 clearTimeout(timer)
                 resolve(data)
             }
             pendingResolve = resolveWrap
         })
+        promise.cancel = function () {
+            if (timer) clearTimeout(timer)
+            if (pendingResolve === resolveWrap) pendingResolve = null
+        }
+        return promise
+    }
+
+    function isChineseSubtitleLan(lan, text) {
+        const l = String(lan || '').trim().toLowerCase()
+        const t = String(text || '').trim()
+        if (/^(ai-zh|zh|zh-cn|zh-hans|zh-hans-cn)$/i.test(l)) return true
+        if (t === '中文' || t.indexOf('中文') === 0) return true
+        return false
+    }
+
+    /** 在已打开的字幕菜单里找中文/AI中选项 */
+    function findChineseSubtitleItem() {
+        const items = Array.from(document.querySelectorAll(
+            '.bpx-player-ctrl-subtitle-language-item, .bpx-player-ctrl-subtitle-box [data-lan]'
+        ))
+        for (let i = 0; i < items.length; i++) {
+            const el = items[i]
+            const lan = el.getAttribute('data-lan') || ''
+            const textEl = el.querySelector('.bpx-player-ctrl-subtitle-language-item-text')
+            const text = ((textEl || el).textContent || '').trim()
+            if (isChineseSubtitleLan(lan, text)) return el
+        }
+        return null
     }
 
     function hoverPlayer() {
@@ -355,28 +385,16 @@ function getBiliCfg(getPSHandle) {
 
     async function selectAiSubtitle() {
         await delay(300 + Math.random() * 200)
-        const aiZh = document.querySelector('[data-lan="ai-zh"]')
-        if (aiZh) {
-            // 已激活则不会重新请求，走接口缓存
-            if (aiZh.classList.contains('bpx-state-active') || aiZh.matches('.bpx-state-active')) {
-                return { ok: true, alreadyActive: true }
-            }
-            aiZh.click()
-            return { ok: true, alreadyActive: false }
+        const item = findChineseSubtitleItem()
+        if (!item) {
+            return { ok: false, alreadyActive: false, reason: 'no-zh' }
         }
-        const chinese = Array.from(document.querySelectorAll('*')).find(el =>
-            el.childNodes.length === 1 &&
-            el.childNodes[0].nodeType === 3 &&
-            el.textContent.trim() === '中文'
-        )
-        if (chinese) {
-            if (chinese.classList.contains('bpx-state-active') || chinese.matches('.bpx-state-active')) {
-                return { ok: true, alreadyActive: true }
-            }
-            chinese.click()
-            return { ok: true, alreadyActive: false }
+        // 已激活则不会重新请求，走接口缓存
+        if (item.classList.contains('bpx-state-active') || item.matches('.bpx-state-active')) {
+            return { ok: true, alreadyActive: true }
         }
-        return { ok: false, alreadyActive: false }
+        item.click()
+        return { ok: true, alreadyActive: false }
     }
 
     async function fetchSubtitleBySimulate() {
@@ -406,8 +424,9 @@ function getBiliCfg(getPSHandle) {
         const selected = await selectAiSubtitle()
         if (!selected.ok) {
             console.warn('[bili-subtitle] 未找到AI/中文字幕选项')
-            pendingResolve = null
-            return { title, data: null }
+            if (dataPromise && dataPromise.cancel) dataPromise.cancel()
+            else pendingResolve = null
+            return { title, data: null, noChinese: true }
         }
 
         // 已激活：优先用切换视频时自动请求留下的接口缓存
